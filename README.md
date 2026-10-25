@@ -1,6 +1,6 @@
 # Sub Tracker
 
-A macOS app for Codex, Claude, Z.ai, Gemini, and Antigravity usage.
+A macOS app for coding subscription usage, beside your notch or in the menu bar.
 
 [Download the app](https://github.com/Sagar-CK/sub-tracker/releases) · [Build from source](#build-from-source) · [Contribute](CONTRIBUTING.md)
 
@@ -15,7 +15,7 @@ Choose Notch, Menu bar, or Both in Settings. Macs without a notch use the menu b
 
 1. Open [Releases](https://github.com/Sagar-CK/sub-tracker/releases) and download the **universal DMG**.
 2. Open the DMG and drag **Sub Tracker** into **Applications**.
-3. Open Sub Tracker from Applications. Local CLI sign-ins are detected; connect a Z.ai Coding Plan key in Settings if needed.
+3. Open Sub Tracker from Applications. Local sign-ins are detected. Use **Settings → Add account** to connect a subscription key or open a provider’s sign-in.
 
 Requires **macOS 14+**. The same download runs on Apple Silicon and Intel Macs. A ZIP containing the app is also available. No Xcode or Swift installation is needed for the download.
 
@@ -52,6 +52,13 @@ Click the provider readouts beside your camera cutout or the menu bar icon. Use 
 | Z.ai / BigModel | Coding Plan quota through a connected key | Existing Z.ai configuration in Claude Code |
 | Gemini | Code Assist model quotas through Gemini CLI OAuth | Managed in Gemini CLI |
 | Antigravity | Reported model-group allowances and reset times through `agy` 1.1.11+ | Managed in Antigravity CLI |
+| GitHub Copilot | Request allowances, unlimited pools, or reported AI credits | Managed in Copilot |
+| Cursor | Editor/CLI sign-in, model pools or shared weekly allowance | Managed in Cursor |
+| Kimi | Global and China plans, reported five-hour, weekly, or monthly windows | Managed in Kimi |
+| MiniMax | M Plan / Coding Plan allowances and credits | Managed in the coding client |
+| Devin / Windsurf | Local editor quota cache, always marked cached | Managed in Devin |
+| Kiro | CLI plan, trial, and overage credits | Managed in Kiro CLI |
+| OpenCode Go | Five-hour, weekly, and monthly usage | Managed in OpenCode |
 
 Claude Desktop and ZCode manage their own sign-ins. Keychain-only Codex accounts are not supported. Restart running clients after switching.
 
@@ -59,11 +66,16 @@ Google's individual AI Pro and Ultra coding access moved to [Antigravity](https:
 
 Usage shows provider allowances and credits. Weekly dollar spend appears only when a provider reports it. Monthly bills and estimated costs are not displayed.
 
+<p align="center">
+  <img src="docs/images/coding-dark.png" alt="Copilot, Cursor, and Kimi quota windows in dark appearance" width="40%">
+  <img src="docs/images/coding-light.png" alt="The same coding-provider accounts in light appearance" width="40%">
+</p>
+
 See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.2.1** is an early preview. Codex and Claude usage have been checked with live accounts. Z.ai, Gemini, and Antigravity have fixture checks but still need validation with live accounts. Provider endpoints can change.
+Version **0.3.0** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf is cache-only, and Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 
@@ -83,11 +95,12 @@ Built with SwiftUI and AppKit, with no third-party runtime dependencies.
 swift run SubTracker --demo --window
 swift run SubTracker --demo --settings
 swift run SubTracker --demo --google --window
+swift run SubTracker --demo --coding --window
 ./scripts/check.sh
 ./scripts/package.sh
 ```
 
-`--demo` uses sample accounts and makes no provider requests or credential changes. The 24 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, CLI version gates, timeouts, and process cleanup.
+`--demo` uses sample accounts and makes no provider requests or credential changes. The 42 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, regional keys, read-only SQLite access, CLI version gates, timeouts, and process cleanup.
 
 CI checks Apple Silicon and Intel builds. Version tags publish universal preview downloads after those checks pass. See [CONTRIBUTING.md](CONTRIBUTING.md) and [release instructions](docs/RELEASING.md).
 
@@ -99,4 +112,4 @@ Read [SECURITY.md](SECURITY.md) before reporting a sensitive issue. Never includ
 
 ## License
 
-[MIT](LICENSE). Provider marks have their own [attribution and ownership notices](THIRD_PARTY_NOTICES.md). Sub Tracker is independent of OpenAI, Anthropic, Z.ai, and Google.
+[MIT](LICENSE). Provider marks have their own [attribution and ownership notices](THIRD_PARTY_NOTICES.md). Sub Tracker is independent of the supported providers.

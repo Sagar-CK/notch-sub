@@ -154,8 +154,12 @@ public struct UsageClient: Sendable {
   public init() {}
   public func fetch(
     provider: Provider, token: String, accountID: String? = nil, zaiHost: String = "api.z.ai",
-    projectID: String? = nil
+    projectID: String? = nil, headers: [String: String] = [:]
   ) async throws -> UsageSnapshot {
+    if Provider.additional.contains(provider) {
+      return try await fetchCodingPlan(
+        provider: provider, token: token, host: zaiHost, accountID: accountID, headers: headers)
+    }
     if provider == .gemini {
       return try await fetchGemini(token: token, projectID: projectID, expectedEmail: accountID)
     }
@@ -168,7 +172,7 @@ public struct UsageClient: Sendable {
         throw TrackerError.message("Unsupported Z.ai host")
       }
       url = URL(string: "https://\(zaiHost)/api/monitor/usage/quota/limit")!
-    case .gemini, .antigravity: throw TrackerError.message("Usage source unavailable")
+    default: throw TrackerError.message("Usage source unavailable")
     }
     var request = URLRequest(url: url, timeoutInterval: 20)
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -204,7 +208,7 @@ public struct UsageClient: Sendable {
     case .zai:
       if json["success"] as? Bool == false { throw TrackerError.message("Z.ai rejected this key") }
       snapshot = UsageParser.zai(json)
-    case .gemini, .antigravity: throw TrackerError.message("Usage source unavailable")
+    default: throw TrackerError.message("Usage source unavailable")
     }
     guard !snapshot.windows.isEmpty || snapshot.creditBalance != nil else {
       throw TrackerError.message("Usage not reported")

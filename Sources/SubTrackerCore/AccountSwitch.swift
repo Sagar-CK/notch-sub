@@ -63,7 +63,7 @@ extension LocalAccounts {
     case .codex: try switchCodex(account)
     case .claude: try switchClaude(account)
     case .zai: try switchZai(account)
-    case .gemini, .antigravity:
+    case .gemini, .antigravity, .copilot, .cursor, .kimi, .minimax, .windsurf, .kiro, .opencode:
       throw TrackerError.message("Manage this sign-in in \(account.provider.title)")
     }
   }

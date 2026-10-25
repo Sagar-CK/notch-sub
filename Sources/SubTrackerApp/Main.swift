@@ -31,7 +31,9 @@ import SwiftUI
     {
       UserDefaults.standard.set(placement.rawValue, forKey: "placement")
     }
-    store = TrackerStore(demo: args.contains("--demo"), googleDemo: args.contains("--google"))
+    store = TrackerStore(
+      demo: args.contains("--demo"), googleDemo: args.contains("--google"),
+      codingDemo: args.contains("--coding"))
     if args.contains("--diagnose") {
       Task {
         await store.refresh()
@@ -73,7 +75,7 @@ import SwiftUI
           origin: .zero,
           size: NSSize(
             width: isSettings ? 410 : 382,
-            height: max(isSettings ? 250 : 400, min(700, size.height))))
+            height: isSettings ? size.height : max(400, min(700, size.height))))
         let window = NSWindow(
           contentRect: view.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentView = view

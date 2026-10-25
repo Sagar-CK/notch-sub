@@ -2,7 +2,8 @@ import CoreFoundation
 import Foundation
 
 public enum Provider: String, CaseIterable, Codable, Sendable, Identifiable {
-  case codex, claude, zai, gemini, antigravity
+  case codex, claude, zai, gemini, antigravity, copilot, cursor, kimi, minimax, windsurf, kiro,
+    opencode
   public var id: String { rawValue }
   public var title: String {
     switch self {
@@ -11,6 +12,13 @@ public enum Provider: String, CaseIterable, Codable, Sendable, Identifiable {
     case .zai: "Z.ai"
     case .gemini: "Gemini"
     case .antigravity: "Antigravity"
+    case .copilot: "Copilot"
+    case .cursor: "Cursor"
+    case .kimi: "Kimi"
+    case .minimax: "MiniMax"
+    case .windsurf: "Devin"
+    case .kiro: "Kiro"
+    case .opencode: "OpenCode Go"
     }
   }
   public var dashboard: URL {
@@ -21,6 +29,13 @@ public enum Provider: String, CaseIterable, Codable, Sendable, Identifiable {
       case .zai: "https://z.ai/manage-apikey/coding-plan/personal/my-plan"
       case .gemini: "https://geminicli.com/docs/resources/quota-and-pricing/"
       case .antigravity: "https://antigravity.google/"
+      case .copilot: "https://github.com/settings/copilot"
+      case .cursor: "https://cursor.com/dashboard?tab=usage"
+      case .kimi: "https://www.kimi.com/code/console"
+      case .minimax: "https://www.minimax.io/m-plan"
+      case .windsurf: "https://app.devin.ai/"
+      case .kiro: "https://app.kiro.dev/"
+      case .opencode: "https://opencode.ai/console"
       }
     return URL(string: value)!
   }
@@ -68,9 +83,11 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
   public var plan: String?
   public var creditBalance: String?
   public var spend: Spend?
+  public var metrics: [UsageMetric]?
   public init(
     windows: [UsageWindow] = [], fetchedAt: Date = Date(), source: String = "Live",
-    plan: String? = nil, creditBalance: String? = nil, spend: Spend? = nil
+    plan: String? = nil, creditBalance: String? = nil, spend: Spend? = nil,
+    metrics: [UsageMetric] = []
   ) {
     self.windows = windows
     self.fetchedAt = fetchedAt
@@ -78,9 +95,22 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
     self.plan = plan
     self.creditBalance = creditBalance
     self.spend = spend
+    self.metrics = metrics
   }
   public func isStale(at now: Date = Date()) -> Bool {
-    now.timeIntervalSince(fetchedAt) > 900 || windows.contains { $0.hasReset(at: now) }
+    source == "Local cache" || now.timeIntervalSince(fetchedAt) > 900
+      || windows.contains { $0.hasReset(at: now) }
+  }
+}
+
+public struct UsageMetric: Codable, Equatable, Identifiable, Sendable {
+  public var id: String
+  public var title: String
+  public var value: String
+  public init(id: String, title: String, value: String) {
+    self.id = id
+    self.title = title
+    self.value = value
   }
 }
 
@@ -93,6 +123,8 @@ public enum AuthSource: Equatable, Sendable {
   case geminiFile(URL)
   case geminiKeychain
   case antigravityCLI(URL)
+  case additionalLocal
+  case windsurfCache(URL)
   case unavailable
 }
 
@@ -123,6 +155,11 @@ public struct Account: Identifiable, Equatable, Sendable {
     self.issue = issue
     self.canSwitch = canSwitch
   }
+  public var showsInCompactView: Bool {
+    if isActive { return true }
+    if case .vault = source { return provider.acceptsKey && !canSwitch }
+    return false
+  }
   public var planLabel: String? {
     let value = usage?.plan.flatMap { $0 == "unknown" ? nil : $0 } ?? plan
     switch value?.lowercased() {
@@ -135,7 +172,7 @@ public struct Account: Identifiable, Equatable, Sendable {
   }
   // Google CLI metadata can lag an external account change. Revalidate each refresh;
   // the Antigravity report does not provide an identity at all.
-  public var canCacheUsage: Bool { provider != .gemini && provider != .antigravity }
+  public var canCacheUsage: Bool { ![.gemini, .antigravity, .windsurf].contains(provider) }
 }
 
 public enum TrackerError: LocalizedError {

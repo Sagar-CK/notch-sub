@@ -123,6 +123,7 @@ public struct Credentials: Sendable {
   public var accountID: String?
   public var host: String = "api.z.ai"
   public var projectID: String? = nil
+  public var headers: [String: String] = [:]
 }
 
 public struct LocalAccounts: Sendable {
@@ -218,8 +219,9 @@ public struct LocalAccounts: Sendable {
         JSON.read(paths.claude.appendingPathComponent("settings.json"))["env"] as? [String: Any]
         ?? [:]
       let canSwitch =
-        profile.provider != .zai
-        || Self.zaiHost(configuredEnv["ANTHROPIC_BASE_URL"] as? String) != nil
+        profile.provider == .claude || profile.provider == .codex
+        || (profile.provider == .zai
+          && Self.zaiHost(configuredEnv["ANTHROPIC_BASE_URL"] as? String) != nil)
       result.append(
         Account(
           id: profile.identity, provider: profile.provider, name: profile.name,
@@ -257,6 +259,9 @@ public struct LocalAccounts: Sendable {
         Account(id: "zai-unconnected", provider: .zai, name: "ZCode", issue: "Connect Coding Plan"))
     }
     result += discoverGoogleAccounts()
+    let additional = discoverAdditionalAccounts()
+    result.removeAll { a in additional.contains { $0.id == a.id } }
+    result += additional
     return result.sorted {
       if $0.provider != $1.provider {
         return Provider.allCases.firstIndex(of: $0.provider)! < Provider.allCases.firstIndex(
@@ -305,7 +310,7 @@ public struct LocalAccounts: Sendable {
       {
         return Credentials(token: token)
       }
-      if account.provider == .zai, let token = json["token"] as? String {
+      if account.provider.acceptsKey, let token = json["token"] as? String {
         return Credentials(token: token, host: json["host"] as? String ?? "api.z.ai")
       }
       throw TrackerError.message("Sign-in needed")
@@ -331,6 +336,8 @@ public struct LocalAccounts: Sendable {
       return try geminiCredentials(for: account)
     case .antigravityCLI:
       throw TrackerError.message("Read usage through Antigravity CLI")
+    case .additionalLocal: return try additionalCredentials(for: account)
+    case .windsurfCache: throw TrackerError.message("Read the editor's usage cache")
     case .unavailable: throw TrackerError.message("Connect Coding Plan")
     }
   }
@@ -369,7 +376,7 @@ public struct LocalAccounts: Sendable {
     try saveProfile(
       SavedProfile(id: id, provider: .zai, name: name.isEmpty ? "Coding Plan" : name, identity: id))
   }
-  private func saveProfile(_ profile: SavedProfile) throws {
+  func saveProfile(_ profile: SavedProfile) throws {
     var profiles = savedProfiles.filter { $0.identity != profile.identity }
     profiles.append(profile)
     try PrivateFiles.write(

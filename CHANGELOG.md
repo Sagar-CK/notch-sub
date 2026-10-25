@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 (2026-10-24, Preview)
+
+- Add GitHub Copilot, Cursor, Kimi, MiniMax, Kiro, and OpenCode Go usage integrations.
+- Read Devin/Windsurf’s local quota cache with an explicit cached state.
+- Discover supported local editor databases, CLI sign-ins, and provider-scoped keys without changing them.
+- Add region-pinned key connections, real provider icons, and a compact Add account menu.
+- Keep unlimited allowances and credits separate from percentage limits.
+- Add 18 checks covering provider formats, missing values, read-only databases, region boundaries, and account changes.
+
+Cursor was validated with a live account. Other new providers require live-account validation. Switching for these providers stays in their own client. Downloads remain unnotarized previews.
+
 ## 0.2.1 (2026-10-24, Preview)
 
 - Keep the last Google reading in memory when a refresh is skipped by the one-minute floor. Revalidate it when the next request is permitted.

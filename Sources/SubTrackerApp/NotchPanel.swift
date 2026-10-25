@@ -28,7 +28,7 @@ private final class NotchWindow: NSPanel {
   @Published private(set) var expanded = false
   @Published private(set) var cameraWidth: CGFloat = 185
   @Published private(set) var headerHeight: CGFloat = 32
-  var wingWidth: CGFloat { store.accounts.filter(\.isActive).count > 2 ? 112 : 70 }
+  var wingWidth: CGFloat { store.accounts.filter(\.showsInCompactView).count > 2 ? 112 : 70 }
   var expandedWidth: CGFloat { max(382, cameraWidth + wingWidth * 2) }
   private var panel: NotchWindow!
   private var globalMonitor: Any?
@@ -129,8 +129,13 @@ private final class NotchWindow: NSPanel {
     // The collapsed panel occupies the real menu-bar band, leaving the physical camera cutout empty.
     let top = screen.frame.maxY
     let width: CGFloat = expanded ? expandedWidth : cameraWidth + wingWidth * 2
+    let contentHeight =
+      expanded
+      ? NSHostingView(rootView: TrackerView(store: store, showSettings: onSettings, width: width))
+        .fittingSize.height : 0
     let height: CGFloat =
-      expanded ? min(576 + headerHeight, screen.visibleFrame.height - 40) : headerHeight
+      expanded
+      ? min(max(200, contentHeight) + headerHeight, screen.visibleFrame.height - 40) : headerHeight
     panel.setFrame(
       NSRect(x: center - width / 2, y: top - height, width: width, height: height), display: true,
       animate: animated)
@@ -141,7 +146,7 @@ private struct NotchView: View {
   @ObservedObject var store: TrackerStore
   @ObservedObject var controller: NotchController
   let onSettings: () -> Void
-  private var active: [Account] { store.accounts.filter(\.isActive) }
+  private var active: [Account] { store.accounts.filter(\.showsInCompactView) }
   var body: some View {
     VStack(spacing: 0) {
       Button {

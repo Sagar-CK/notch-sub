@@ -15,7 +15,7 @@ import SubTrackerCore
   var changed: (() -> Void)?
   let demo: Bool
 
-  init(demo: Bool = false, googleDemo: Bool = false) {
+  init(demo: Bool = false, googleDemo: Bool = false, codingDemo: Bool = false) {
     self.demo = demo
     local = LocalAccounts()
     if !demo,
@@ -25,13 +25,15 @@ import SubTrackerCore
       cache = saved
     }
     if demo {
-      accounts = googleDemo ? Self.googleDemoAccounts : Self.demoAccounts
+      accounts =
+        codingDemo
+        ? Self.codingDemoAccounts : googleDemo ? Self.googleDemoAccounts : Self.demoAccounts
       refreshedAt = Date()
     }
   }
   var menuTitle: String {
     guard UserDefaults.standard.object(forKey: "showRemaining") as? Bool ?? true else { return "" }
-    let remaining = accounts.filter(\.isActive).compactMap { a -> Double? in
+    let remaining = accounts.filter(\.showsInCompactView).compactMap { a -> Double? in
       guard a.issue == nil, let usage = a.usage, !usage.isStale() else { return nil }
       return usage.windows.map(\.remainingPercent).min()
     }.min()
@@ -84,6 +86,12 @@ import SubTrackerCore
       for account in eligible {
         group.addTask {
           do {
+            if case .windsurfCache(let file) = account.source {
+              let usage = try await Task.detached(priority: .utility) {
+                try local.windsurfUsage(at: file)
+              }.value
+              return (account.id, usage, nil)
+            }
             if case .antigravityCLI(let executable) = account.source {
               let usage = try await Task.detached(priority: .utility) {
                 try AntigravityUsage.fetch(executable: executable)
@@ -96,7 +104,7 @@ import SubTrackerCore
             let usage = try await UsageClient().fetch(
               provider: account.provider, token: credentials.token,
               accountID: credentials.accountID, zaiHost: credentials.host,
-              projectID: credentials.projectID)
+              projectID: credentials.projectID, headers: credentials.headers)
             return (account.id, usage, nil)
           } catch {
             let issue = (error as? TrackerError)?.localizedDescription ?? "Connection unavailable"
@@ -166,19 +174,55 @@ import SubTrackerCore
       return false
     }
   }
-  func connectZai(name: String, token: String, host: String) async -> Bool {
+  func connectProvider(_ provider: Provider, name: String, token: String, host: String) async
+    -> Bool
+  {
     guard !demo else { return false }
     do {
       _ = try await UsageClient().fetch(
-        provider: .zai, token: token.trimmingCharacters(in: .whitespacesAndNewlines), zaiHost: host)
+        provider: provider, token: token.trimmingCharacters(in: .whitespacesAndNewlines),
+        zaiHost: host)
       let local = self.local
-      try await Task.detached { try local.saveZai(name: name, token: token, host: host) }.value
+      try await Task.detached {
+        try local.saveProviderKey(provider: provider, name: name, token: token, host: host)
+      }.value
       await refresh()
       return true
     } catch {
       notice = error.localizedDescription
       return false
     }
+  }
+  static var codingDemoAccounts: [Account] {
+    let now = Date()
+    return [
+      Account(
+        id: "demo-copilot", provider: .copilot, name: "", isActive: true,
+        usage: UsageSnapshot(
+          windows: [
+            UsageWindow(
+              id: "premium", title: "Premium requests", usedPercent: 22,
+              resetsAt: now.addingTimeInterval(3600 * 72))
+          ], plan: "Pro",
+          metrics: [UsageMetric(id: "completions", title: "Completions", value: "Unlimited")]),
+        canSwitch: false),
+      Account(
+        id: "demo-cursor", provider: .cursor, name: "", isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "weekly", title: "Weekly", usedPercent: 35,
+            resetsAt: now.addingTimeInterval(3600 * 42))
+        ]), canSwitch: false),
+      Account(
+        id: "demo-kimi", provider: .kimi, name: "", isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "5h", title: "5 hours", usedPercent: 8, resetsAt: now.addingTimeInterval(3600 * 3)),
+          UsageWindow(
+            id: "monthly", title: "Monthly", usedPercent: 41,
+            resetsAt: now.addingTimeInterval(3600 * 90)),
+        ]), canSwitch: false),
+    ]
   }
   static var googleDemoAccounts: [Account] {
     let now = Date()

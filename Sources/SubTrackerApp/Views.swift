@@ -12,13 +12,18 @@ enum Style {
 struct ProviderIcon: View {
   let provider: Provider
   var size: CGFloat = 23
+  @Environment(\.colorScheme) private var colorScheme
+  private var resourceName: String {
+    provider.rawValue + (provider == .kimi && colorScheme == .dark ? "-dark" : "")
+  }
   var body: some View {
-    if let url = Bundle.main.url(forResource: provider.rawValue, withExtension: "png")
-      ?? Bundle.module.url(forResource: provider.rawValue, withExtension: "png"),
+    if let url = Bundle.main.url(forResource: resourceName, withExtension: "png")
+      ?? Bundle.module.url(forResource: resourceName, withExtension: "png"),
       let image = NSImage(contentsOf: url)
     {
       Image(nsImage: image).renderingMode(
-        [.claude, .gemini, .antigravity].contains(provider) ? .original : .template
+        [.claude, .gemini, .antigravity, .kimi, .minimax, .kiro, .windsurf].contains(provider)
+          ? .original : .template
       )
       .resizable().scaledToFit().frame(width: size, height: size).accessibilityLabel(
         provider.title)
@@ -134,13 +139,17 @@ struct ProviderSection: View {
         ProviderIcon(provider: provider)
         Text(provider.title).font(.system(size: 15, weight: .semibold))
         Spacer()
+        if accounts.count == 1, accounts[0].name.isEmpty, let plan = accounts[0].planLabel {
+          Text(plan).font(.system(size: 10)).foregroundStyle(Style.secondary)
+        }
         Menu {
           Button("Open usage") { NSWorkspace.shared.open(provider.dashboard) }
           if provider == .claude { Button("Save current sign-in", action: onSave) }
-          if provider == .zai { Button("Connect account…", action: onConnect) }
+          if provider.acceptsKey { Button("Connect account…", action: onConnect) }
           if provider == .codex { Button("Add account…", action: onLogin) }
           if provider == .claude { Button("Sign in to another account…", action: onLogin) }
-          if provider == .gemini || provider == .antigravity {
+          if [.gemini, .antigravity, .copilot, .cursor, .kimi, .kiro, .opencode].contains(provider)
+          {
             Button("Open \(provider.title) CLI…", action: onLogin)
           }
         } label: {
@@ -151,9 +160,10 @@ struct ProviderSection: View {
           "\(provider.title) actions")
       }
       ForEach(accounts) { account in
-        if account.isActive || accounts.count == 1 {
+        if account.showsInCompactView || accounts.count == 1 {
           AccountRow(
-            account: account, busy: busy, onSwitch: { onSwitch(account) }, onConnect: onConnect)
+            account: account, busy: busy, onSwitch: { onSwitch(account) }, onConnect: onConnect,
+            hideIdentity: accounts.count == 1 && account.name.isEmpty && !account.canSwitch)
         } else {
           CompactAccountRow(account: account, busy: busy, onSwitch: { onSwitch(account) })
         }
@@ -213,42 +223,55 @@ struct AccountRow: View {
   let busy: Bool
   let onSwitch: () -> Void
   let onConnect: () -> Void
+  var hideIdentity = false
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 7) {
-        if account.isActive {
-          Circle().fill(Style.green).frame(width: 5, height: 5).help("Active local sign-in")
-        }
-        Text(account.name).font(.system(size: 12, weight: .medium)).lineLimit(1).help(
-          account.email ?? account.name)
-        Spacer(minLength: 4)
-        if let label = account.planLabel {
-          Text(label).font(.system(size: 10)).foregroundStyle(Style.secondary)
-        }
-        if !account.isActive {
-          if account.source == .unavailable {
-            Button("Connect", action: onConnect).font(.system(size: 10)).buttonStyle(.plain)
-          } else if !account.canSwitch {
-            Button(action: { openProvider(account.provider) }) {
-              Image(systemName: "arrow.up.right").font(.system(size: 10)).frame(
-                width: 20, height: 18)
+      if !hideIdentity && (!account.name.isEmpty || account.planLabel != nil || !account.isActive) {
+        HStack(spacing: 7) {
+          if account.isActive && !account.name.isEmpty {
+            Circle().fill(Style.green).frame(width: 5, height: 5).help("Active local sign-in")
+          }
+          Text(account.name.isEmpty ? account.planLabel ?? "" : account.name).font(
+            .system(size: 12, weight: .medium)
+          ).lineLimit(1).help(
+            account.email ?? account.name)
+          Spacer(minLength: 4)
+          if !account.name.isEmpty, let label = account.planLabel {
+            Text(label).font(.system(size: 10)).foregroundStyle(Style.secondary)
+          }
+          if !account.isActive {
+            if account.source == .unavailable {
+              Button("Connect", action: onConnect).font(.system(size: 10)).buttonStyle(.plain)
+            } else if !account.canSwitch {
+              Button(action: { openProvider(account.provider) }) {
+                Image(systemName: "arrow.up.right").font(.system(size: 10)).frame(
+                  width: 20, height: 18)
+              }
+              .buttonStyle(.plain).help("Manage this sign-in in \(account.provider.title)")
+              .accessibilityLabel(
+                "Open \(account.provider.title)")
+            } else {
+              Button(action: onSwitch) {
+                Image(systemName: "arrow.left.arrow.right").font(.system(size: 10)).frame(
+                  width: 20, height: 18)
+              }
+              .buttonStyle(.plain).foregroundStyle(Style.secondary).disabled(busy)
+              .help("Make \(account.name) active").accessibilityLabel("Switch to \(account.name)")
             }
-            .buttonStyle(.plain).help("Manage this sign-in in \(account.provider.title)")
-            .accessibilityLabel(
-              "Open \(account.provider.title)")
-          } else {
-            Button(action: onSwitch) {
-              Image(systemName: "arrow.left.arrow.right").font(.system(size: 10)).frame(
-                width: 20, height: 18)
-            }
-            .buttonStyle(.plain).foregroundStyle(Style.secondary).disabled(busy)
-            .help("Make \(account.name) active").accessibilityLabel("Switch to \(account.name)")
           }
         }
       }
       if let usage = account.usage {
         ForEach(usage.windows) { window in
           WindowRow(window: window, stale: usage.isStale() || account.issue != nil)
+        }
+        ForEach(usage.metrics ?? []) { metric in
+          HStack {
+            Text(metric.title)
+            Spacer()
+            Text(metric.value).monospacedDigit()
+          }
+          .font(.system(size: 11)).foregroundStyle(Style.secondary)
         }
         if let spend = usage.spend {
           HStack {
@@ -262,7 +285,7 @@ struct AccountRow: View {
           Text(creditText(credits)).font(.system(size: 10)).foregroundStyle(Style.secondary)
             .help("Provider-reported credit balance. Credits are not dollars.")
         }
-        if usage.isStale(), account.issue == nil {
+        if usage.isStale(), usage.source != "Local cache", account.issue == nil {
           Text("Updated \(usage.fetchedAt.formatted(date: .abbreviated, time: .shortened))").font(
             .system(size: 10)
           ).foregroundStyle(Style.secondary)
@@ -349,7 +372,7 @@ struct SettingsView: View {
   @State private var host = "api.z.ai"
   @State private var connecting = false
   @State private var connectionError: String?
-  @State private var addingZai = false
+  @State private var keyProvider: Provider?
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       HStack {
@@ -387,48 +410,72 @@ struct SettingsView: View {
       }.toggleStyle(.switch).controlSize(.small)
       Divider()
       HStack {
-        ProviderIcon(provider: .claude)
-        Text("Claude").fontWeight(.medium)
-        Spacer()
-        Button("Save account") { Task { await store.saveClaude() } }.help(
-          "Save the current Claude Code sign-in in Keychain")
-      }
-      HStack(spacing: 10) {
-        ProviderIcon(provider: .zai)
-        Text("Z.ai").fontWeight(.medium)
-        Spacer()
-        Button(addingZai ? "Cancel" : "Connect") {
-          addingZai.toggle()
-          key = ""
-          connectionError = nil
+        if store.accounts.contains(where: { $0.provider == .claude }) {
+          Button("Save Claude account") { Task { await store.saveClaude() } }
+            .help("Save the current Claude Code sign-in in Keychain")
         }
+        Spacer()
+        Menu("Add account") {
+          ForEach(Provider.allCases) { provider in
+            Button(provider.title) {
+              if provider.acceptsKey {
+                keyProvider = provider
+                host = provider.allowedHosts.first ?? ""
+                key = ""
+                name = ""
+                connectionError = nil
+              } else {
+                Task { if await store.prepareLogin(provider) { openLogin(provider) } }
+              }
+            }
+          }
+        }.fixedSize().disabled(connecting)
       }
-      if addingZai {
-        VStack(spacing: 10) {
-          TextField("Account name", text: $name)
-          SecureField("Coding Plan API key", text: $key)
+      if let provider = keyProvider {
+        VStack(spacing: 12) {
           HStack {
-            Picker("Provider", selection: $host) {
-              Text("Z.ai").tag("api.z.ai")
-              Text("BigModel").tag("open.bigmodel.cn")
-            }.labelsHidden().frame(width: 150)
+            ProviderIcon(provider: provider, size: 20)
+            Text(provider.title).fontWeight(.medium)
+            Spacer()
+            Button("Cancel") {
+              keyProvider = nil
+              key = ""
+              connectionError = nil
+            }
+            .disabled(connecting)
+          }
+          TextField("Account name (optional)", text: $name).disabled(connecting)
+          SecureField("Subscription key", text: $key).disabled(connecting)
+          HStack {
+            if provider.allowedHosts.count > 1 {
+              Picker("Region", selection: $host) {
+                ForEach(provider.allowedHosts, id: \.self) { endpoint in
+                  Text(
+                    endpoint.hasSuffix(".cn") || endpoint.contains("minimaxi")
+                      || endpoint == "api.kimi.com" ? "China" : "Global"
+                  ).tag(endpoint)
+                }
+              }.labelsHidden().frame(width: 140).disabled(connecting)
+            }
             Spacer()
             if connecting { ProgressView().controlSize(.small) }
             Button("Connect") {
               connecting = true
               connectionError = nil
               Task {
-                if await store.connectZai(name: name, token: key, host: host) {
+                if await store.connectProvider(provider, name: name, token: key, host: host) {
                   key = ""
                   name = ""
-                  addingZai = false
+                  keyProvider = nil
                 } else {
                   connectionError = store.notice
                   store.notice = nil
                 }
                 connecting = false
               }
-            }.disabled(key.isEmpty || connecting)
+            }.disabled(
+              key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || connecting
+                || store.demo)
           }
         }.textFieldStyle(.roundedBorder)
       }
@@ -478,6 +525,14 @@ func openLogin(_ provider: Provider) {
   case .codex: command = "codex login"
   case .claude: command = "claude auth login"
   case .gemini: command = "gemini"
+  case .copilot: command = "copilot login"
+  case .cursor: command = "agent login"
+  case .kimi: command = "kimi"
+  case .kiro: command = "kiro-cli login"
+  case .opencode: command = "opencode auth login"
+  case .minimax, .windsurf:
+    NSWorkspace.shared.open(provider.dashboard)
+    return
   case .antigravity:
     guard
       let executable = AntigravityUsage.executable(
