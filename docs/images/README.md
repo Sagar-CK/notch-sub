@@ -4,7 +4,7 @@ All public images use synthetic demo accounts.
 
 | File | View |
 | --- | --- |
-| `usage-dark.png`, `usage-light.png` | Usage panels with CleanShot X backgrounds |
+| `usage-dark.png`, `usage-light.png` | Usage panels with gradient backgrounds |
 | `coding-dark.png`, `coding-light.png` | Copilot, Cursor, and Kimi |
 | `notch.jpg` | Expanded notch panel |
 | `settings.png` | Placement and compact display settings |
@@ -20,6 +20,6 @@ mkdir -p docs/images/raw
 
 Add `--light` instead of `--dark`, or `--coding` for the other provider set.
 
-The framed panels use CleanShot X's gray/pink gradient, centered alignment, 90 px padding, 24 px shadow, 14 px corners, and a 3:4 canvas. Native captures do not simulate a hardware notch.
+The framed panels use native captures on a gray/pink gradient, matching the original CleanShot presentation. The current frames were rendered in HTML: 1140 × 1520 canvas, centered 764 × 1152 capture, 56 px corners, and a soft shadow. Native captures do not simulate a hardware notch.
 
 Check for clipping and private data before committing. Raw captures and CleanShot projects are ignored.
