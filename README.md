@@ -83,7 +83,7 @@ See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.4.2** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
+Version **0.4.3** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 

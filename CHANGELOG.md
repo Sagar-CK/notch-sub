@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3 (2026-10-25, Preview)
+
+- Reserve enough fixed-width space and side padding for 100% in the compact notch.
+
 ## 0.4.2 (2026-10-25, Preview)
 
 - Add Settings → Notch display with Cycle or a pinned provider. The choice persists across launches.

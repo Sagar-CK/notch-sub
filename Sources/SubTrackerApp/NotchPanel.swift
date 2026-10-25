@@ -53,7 +53,7 @@ private final class NotchHostingView: NSHostingView<NotchView> {
     let provider = UserDefaults.standard.string(forKey: "compactProvider") ?? ""
     return store.compactAccounts.filter { provider.isEmpty || $0.provider.rawValue == provider }
   }
-  var wingWidth: CGFloat { compactAccounts.isEmpty ? 0 : 48 }
+  var wingWidth: CGFloat { compactAccounts.isEmpty ? 0 : 60 }
   var compactWidth: CGFloat { cameraWidth + wingWidth * 2 }
   var expandedWidth: CGFloat { max(410, compactWidth + 32) }
   private var panel: NotchWindow!
@@ -387,6 +387,8 @@ private struct NotchView: View {
           Color.clear.frame(width: controller.cameraWidth)
           Text("\(remaining(account))%")
             .font(.system(size: 11, weight: .medium)).monospacedDigit()
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(minWidth: 34)
             .contentTransition(.numericText())
             .frame(width: controller.wingWidth)
         }
