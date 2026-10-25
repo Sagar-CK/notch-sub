@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -34,6 +35,7 @@ jobs:
           name: sub-tracker-${{ matrix.runner }}
           path: |
             dist/*.zip
-            dist/*.sha256
+            dist/*.dmg
+            dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14

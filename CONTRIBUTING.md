@@ -31,6 +31,8 @@ Before submitting:
 
 Format Swift with `xcrun swift-format format --in-place --recursive Sources Tests Package.swift`. Avoid new dependencies unless they solve a concrete need.
 
+To regenerate the app icon from its native renderer, run `swift scripts/make-icon.swift .build/AppIcon.iconset`, then `iconutil -c icns .build/AppIcon.iconset -o assets/AppIcon.icns`.
+
 ## Provider integrations
 
 Keep credential-bearing requests on an explicit HTTPS allowlist and reject redirects. Never log headers, tokens, authentication files, or response bodies. Unknown usage must remain unknown. Credits, quota percentages, monthly usage, and weekly monetary spend are distinct values.

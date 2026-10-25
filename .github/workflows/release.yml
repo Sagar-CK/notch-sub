@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: verify
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify release version
+        shell: bash
+        run: |
+          test "$GITHUB_REF_NAME" = "v$(cat VERSION)"
+          test -f "docs/releases/$(cat VERSION).md"
+      - name: Build universal app and installers
+        run: ./scripts/package.sh --universal
+      - name: Check extracted app
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-check"
+          ditto -x -k dist/*-universal.zip "$RUNNER_TEMP/release-check"
+          app="$RUNNER_TEMP/release-check/Sub Tracker.app"
+          codesign --verify --deep --strict "$app"
+          lipo "$app/Contents/MacOS/SubTracker" -verify_arch arm64 x86_64
+          "$app/Contents/MacOS/SubTracker" --demo --dark --snapshot "$RUNNER_TEMP/release-check/usage.png"
+          test -s "$RUNNER_TEMP/release-check/usage.png"
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*-universal.dmg dist/*-universal.zip dist/SHA256SUMS.txt \
+            --verify-tag --prerelease \
+            --title "Sub Tracker $GITHUB_REF_NAME (Preview)" \
+            --notes-file "docs/releases/$(cat VERSION).md"

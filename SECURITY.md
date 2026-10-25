@@ -22,4 +22,4 @@ Security fixes target the latest source revision and latest tagged release. Vers
 
 ## Distribution
 
-Local builds are ad-hoc signed, not Apple-notarized. CI artifacts are intended for testing. A public, notarized binary release requires a maintainer's Developer ID signing and notarization setup. Do not disable Gatekeeper or remove quarantine as a substitute for verifying an unfamiliar download.
+Local builds, CI artifacts, and preview downloads are ad-hoc signed, not Apple-notarized. A notarized binary release requires a maintainer's Developer ID signing and notarization setup. Preview downloads include SHA-256 checksums and are built from the tagged public source in GitHub Actions. Do not disable Gatekeeper or remove quarantine as a substitute for verifying an unfamiliar download.

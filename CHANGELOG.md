@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — Unreleased
+## 0.1.0 — 2026-10-24 (Preview)
 
 - Read Codex, Claude, and Z.ai / BigModel subscription usage from local sign-ins.
 - Display remaining allowance, reset times, credit balances, and explicitly reported weekly spend.
@@ -8,5 +8,6 @@
 - Switch saved local accounts while preserving outgoing credentials.
 - Add private Keychain storage, stale-data handling, and rate-limit cooldowns.
 - Include a sample-data mode, native screenshots, and macOS verification/packaging workflows.
+- Offer clone-and-run installation and universal Apple Silicon/Intel DMG and ZIP downloads.
 
 Known limits: ZCode desktop and Claude Desktop manage their own sign-ins; keychain-only Codex accounts are not supported; Z.ai live integration requires a connected key; distributed binaries are not yet notarized.
