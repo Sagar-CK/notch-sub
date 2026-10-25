@@ -31,9 +31,10 @@ import SubTrackerCore
       refreshedAt = Date()
     }
   }
+  var visibleAccounts: [Account] { demo ? accounts : accounts.filter(\.canDisplayUsage) }
   var menuTitle: String {
     guard UserDefaults.standard.object(forKey: "showRemaining") as? Bool ?? true else { return "" }
-    let remaining = accounts.filter(\.showsInCompactView).compactMap { a -> Double? in
+    let remaining = visibleAccounts.filter(\.showsInCompactView).compactMap { a -> Double? in
       guard a.issue == nil, let usage = a.usage, !usage.isStale() else { return nil }
       return usage.windows.map(\.remainingPercent).min()
     }.min()
@@ -74,7 +75,8 @@ import SubTrackerCore
         [account.usage, retained, account.canCacheUsage ? cache[account.id] : nil].compactMap { $0 }
         .max { $0.fetchedAt < $1.fetchedAt }
       a.usage = best
-      a.issue = previous[account.id]?.issue ?? account.issue
+      a.issue = account.issue ?? previous[account.id]?.issue
+      a.retainVerification(from: previous[account.id])
       if account.provider == .antigravity, retained != nil {
         a.isActive = previous[account.id]?.isActive ?? false
       }
@@ -114,13 +116,12 @@ import SubTrackerCore
       }
       for await (id, usage, issue) in group {
         guard let index = accounts.firstIndex(where: { $0.id == id }) else { continue }
+        accounts[index].applyUsage(usage, issue: issue)
         if let usage {
-          accounts[index].usage = usage
           if accounts[index].canCacheUsage { cache[id] = usage }
           if accounts[index].provider == .antigravity { accounts[index].isActive = true }
           retryAfter[id] = nil
         }
-        accounts[index].issue = issue
         if issue?.contains("Rate limited") == true {
           retryAfter[id] = Date().addingTimeInterval(900)
         }

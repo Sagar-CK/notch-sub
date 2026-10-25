@@ -139,6 +139,7 @@ public struct Account: Identifiable, Equatable, Sendable {
   public var canSwitch: Bool
   public var usage: UsageSnapshot?
   public var issue: String?
+  public private(set) var isVerified = false
   public init(
     id: String, provider: Provider, name: String, email: String? = nil, plan: String? = nil,
     isActive: Bool = false, source: AuthSource = .unavailable, usage: UsageSnapshot? = nil,
@@ -154,6 +155,25 @@ public struct Account: Identifiable, Equatable, Sendable {
     self.usage = usage
     self.issue = issue
     self.canSwitch = canSwitch
+  }
+  public var canDisplayUsage: Bool {
+    isVerified && issue == nil && usage != nil
+  }
+  public mutating func retainVerification(from previous: Account?) {
+    isVerified =
+      previous?.id == id && previous?.provider == provider
+      && previous?.source == source && previous?.canDisplayUsage == true && issue == nil
+  }
+  public mutating func applyUsage(_ snapshot: UsageSnapshot?, issue: String?) {
+    if let snapshot { usage = snapshot }
+    self.issue = issue
+    // A local cache, installed executable, or saved credential is not account validation.
+    let authenticatedSource: Bool
+    switch source {
+    case .unavailable, .windsurfCache: authenticatedSource = false
+    default: authenticatedSource = true
+    }
+    isVerified = authenticatedSource && snapshot?.source == "Live" && issue == nil
   }
   public var showsInCompactView: Bool {
     if isActive { return true }

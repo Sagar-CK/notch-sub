@@ -250,14 +250,6 @@ public struct LocalAccounts: Sendable {
             id: id, provider: .zai, name: "Coding Plan", isActive: true, source: .zaiEnvironment))
       }
     }
-    let installedZCode = [
-      "/Applications/ZCode.app", paths.home.appendingPathComponent("Applications/ZCode.app").path,
-      paths.home.appendingPathComponent(".zcode").path,
-    ].contains { FileManager.default.fileExists(atPath: $0) }
-    if installedZCode && !result.contains(where: { $0.provider == .zai }) {
-      result.append(
-        Account(id: "zai-unconnected", provider: .zai, name: "ZCode", issue: "Connect Coding Plan"))
-    }
     result += discoverGoogleAccounts()
     let additional = discoverAdditionalAccounts()
     result.removeAll { a in additional.contains { $0.id == a.id } }

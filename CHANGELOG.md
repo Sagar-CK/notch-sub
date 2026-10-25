@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 (2026-10-24, Preview)
+
+- Render provider sections and notch readouts only for accounts with successful authenticated usage checks.
+- Hide expired, rejected, unverified, and cache-only accounts, including installed-app placeholders.
+- Revalidate on each launch and restore hidden accounts after a successful refresh.
+- Add four checks for conditional visibility, failed validation, identity changes, and installed apps without credentials.
+
 ## 0.3.0 (2026-10-24, Preview)
 
 - Add GitHub Copilot, Cursor, Kimi, MiniMax, Kiro, and OpenCode Go usage integrations.

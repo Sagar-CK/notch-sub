@@ -28,7 +28,7 @@ private final class NotchWindow: NSPanel {
   @Published private(set) var expanded = false
   @Published private(set) var cameraWidth: CGFloat = 185
   @Published private(set) var headerHeight: CGFloat = 32
-  var wingWidth: CGFloat { store.accounts.filter(\.showsInCompactView).count > 2 ? 112 : 70 }
+  var wingWidth: CGFloat { store.visibleAccounts.filter(\.showsInCompactView).count > 2 ? 112 : 70 }
   var expandedWidth: CGFloat { max(382, cameraWidth + wingWidth * 2) }
   private var panel: NotchWindow!
   private var globalMonitor: Any?
@@ -146,7 +146,7 @@ private struct NotchView: View {
   @ObservedObject var store: TrackerStore
   @ObservedObject var controller: NotchController
   let onSettings: () -> Void
-  private var active: [Account] { store.accounts.filter(\.showsInCompactView) }
+  private var active: [Account] { store.visibleAccounts.filter(\.showsInCompactView) }
   var body: some View {
     VStack(spacing: 0) {
       Button {

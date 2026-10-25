@@ -40,7 +40,7 @@ struct TrackerView: View {
   @State private var switchingTo: Account?
   var body: some View {
     VStack(spacing: 0) {
-      if store.accounts.isEmpty {
+      if store.visibleAccounts.isEmpty {
         VStack(spacing: 14) {
           Image(systemName: "rectangle.stack").font(.system(size: 28, weight: .light))
             .foregroundStyle(Style.secondary)
@@ -53,15 +53,17 @@ struct TrackerView: View {
       } else {
         ScrollView {
           VStack(spacing: 0) {
-            ForEach(Provider.allCases.filter { p in store.accounts.contains { $0.provider == p } })
-            { provider in
+            ForEach(
+              Provider.allCases.filter { p in store.visibleAccounts.contains { $0.provider == p } }
+            ) { provider in
               ProviderSection(
-                provider: provider, accounts: store.accounts.filter { $0.provider == provider },
+                provider: provider,
+                accounts: store.visibleAccounts.filter { $0.provider == provider },
                 busy: store.refreshing || store.switching,
                 onSwitch: { switchingTo = $0 }, onSave: { Task { await store.saveClaude() } },
                 onConnect: showSettings,
                 onLogin: { Task { if await store.prepareLogin(provider) { openLogin(provider) } } })
-              if provider != store.accounts.last?.provider {
+              if provider != store.visibleAccounts.last?.provider {
                 Divider().opacity(0.55).padding(.horizontal, 22)
               }
             }
@@ -410,7 +412,7 @@ struct SettingsView: View {
       }.toggleStyle(.switch).controlSize(.small)
       Divider()
       HStack {
-        if store.accounts.contains(where: { $0.provider == .claude }) {
+        if store.visibleAccounts.contains(where: { $0.provider == .claude }) {
           Button("Save Claude account") { Task { await store.saveClaude() } }
             .help("Save the current Claude Code sign-in in Keychain")
         }

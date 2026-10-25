@@ -41,6 +41,7 @@ import SwiftUI
         let rows: [[String: Any]] = store.accounts.map { a in
           [
             "provider": a.provider.rawValue, "active": a.isActive, "plan": a.planLabel ?? "unknown",
+            "visible": a.canDisplayUsage,
             "windows": a.usage?.windows.map {
               ["label": $0.title, "remaining": $0.remainingPercent] as [String: Any]
             } ?? [],

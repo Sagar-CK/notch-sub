@@ -9,6 +9,8 @@ A macOS app for coding subscription usage, beside your notch or in the menu bar.
   <img src="docs/images/usage-light.png" alt="Light appearance with the same sample accounts" width="46%">
 </p>
 
+Providers appear only after an authenticated usage check succeeds. Expired, rejected, and unverified accounts stay hidden.
+
 Choose Notch, Menu bar, or Both in Settings. Macs without a notch use the menu bar.
 
 ## Download and install
@@ -56,7 +58,7 @@ Click the provider readouts beside your camera cutout or the menu bar icon. Use 
 | Cursor | Editor/CLI sign-in, model pools or shared weekly allowance | Managed in Cursor |
 | Kimi | Global and China plans, reported five-hour, weekly, or monthly windows | Managed in Kimi |
 | MiniMax | M Plan / Coding Plan allowances and credits | Managed in the coding client |
-| Devin / Windsurf | Local editor quota cache, always marked cached | Managed in Devin |
+| Devin / Windsurf | Cache parser available; hidden until a live account can be verified | Managed in Devin |
 | Kiro | CLI plan, trial, and overage credits | Managed in Kiro CLI |
 | OpenCode Go | Five-hour, weekly, and monthly usage | Managed in OpenCode |
 
@@ -75,7 +77,7 @@ See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.3.0** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf is cache-only, and Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
+Version **0.3.1** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 
@@ -100,7 +102,7 @@ swift run SubTracker --demo --coding --window
 ./scripts/package.sh
 ```
 
-`--demo` uses sample accounts and makes no provider requests or credential changes. The 42 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, regional keys, read-only SQLite access, CLI version gates, timeouts, and process cleanup.
+`--demo` uses sample accounts and makes no provider requests or credential changes. The 46 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, regional keys, read-only SQLite access, CLI version gates, timeouts, and process cleanup.
 
 CI checks Apple Silicon and Intel builds. Version tags publish universal preview downloads after those checks pass. See [CONTRIBUTING.md](CONTRIBUTING.md) and [release instructions](docs/RELEASING.md).
 
