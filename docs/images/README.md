@@ -1,11 +1,12 @@
 # Product images
 
-These PNGs show real native views with synthetic demo accounts. `usage-dark.png` and `usage-light.png` use CleanShot X’s Add background feature for framing, gradient, shadow, and rounded corners. The coding-provider and current Settings images are direct native renders. They show the expanded panel and settings without simulating a physical notch.
+These images show real native views with synthetic demo accounts. `usage-dark.png` and `usage-light.png` use CleanShot X’s Add background feature for framing, gradient, shadow, and rounded corners. The coding-provider and current Settings images are direct native renders. `notch.jpg` is a native capture of the expanded notch panel. The images do not simulate a hardware cutout.
 
 | File | Appearance | Canvas |
 | --- | --- | --- |
 | `usage-dark.png` | Dark usage panel | 3:4 |
 | `usage-light.png` | Light usage panel | 3:4 |
+| `notch.jpg` | Expanded notch panel | Native capture |
 | `settings.png` | Placement and account controls | Native view |
 | `coding-dark.png` | Copilot, Cursor, and Kimi | Native view |
 | `coding-light.png` | The same accounts in light appearance | Native view |

@@ -360,7 +360,9 @@ func unwrap<T>(_ value: T?) throws -> T {
         { $0.testNumbersRejectBooleansAndNonFiniteValues() }
       ),
     ]
-    let allChecks = checks + SubTrackerCoreTests.codingChecks + SubTrackerCoreTests.visibilityChecks
+    let allChecks =
+      checks + SubTrackerCoreTests.codingChecks + SubTrackerCoreTests.visibilityChecks
+      + SubTrackerCoreTests.notchChecks
     for (name, run) in allChecks {
       let suite = SubTrackerCoreTests()
       try suite.setUpWithError()

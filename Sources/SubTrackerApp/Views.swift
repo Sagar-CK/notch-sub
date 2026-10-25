@@ -37,6 +37,7 @@ struct TrackerView: View {
   @ObservedObject var store: TrackerStore
   var showSettings: () -> Void
   var width: CGFloat = 382
+  var background: Color = Color(nsColor: .windowBackgroundColor)
   @State private var switchingTo: Account?
   var body: some View {
     VStack(spacing: 0) {
@@ -68,7 +69,7 @@ struct TrackerView: View {
               }
             }
           }
-        }.scrollIndicators(.hidden).frame(maxHeight: 540)
+        }.scrollIndicators(.never).frame(maxHeight: 540)
       }
       Divider().opacity(0.55)
       HStack {
@@ -98,7 +99,7 @@ struct TrackerView: View {
       }.padding(.horizontal, 22).padding(.vertical, 10)
     }
     .frame(width: width)
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(background)
     .alert(
       "Switch to \(switchingTo?.name ?? "account")?",
       isPresented: Binding(get: { switchingTo != nil }, set: { if !$0 { switchingTo = nil } }),

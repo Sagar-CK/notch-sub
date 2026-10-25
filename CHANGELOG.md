@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-10-24, Preview)
+
+- Expand a black usage panel from the actual camera notch on hover.
+- Remove persistent provider icons and percentages beside the cutout.
+- Click to keep the panel open; click again, click outside, or press Escape to close.
+- Animate expansion and collapse, respect Reduce Motion, and keep hover from taking keyboard focus.
+- Delay hover dismissal so brief pointer passes and account menus remain usable.
+- Preserve verified-account filtering and configurable placement.
+- Add four interaction checks, bringing the total to 50.
+
 ## 0.3.1 (2026-10-24, Preview)
 
 - Render provider sections and notch readouts only for accounts with successful authenticated usage checks.

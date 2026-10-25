@@ -1,6 +1,6 @@
 # Sub Tracker
 
-A macOS app for coding subscription usage, beside your notch or in the menu bar.
+A macOS app for coding subscription usage, from your notch or in the menu bar.
 
 [Download the app](https://github.com/Sagar-CK/sub-tracker/releases) · [Build from source](#build-from-source) · [Contribute](CONTRIBUTING.md)
 
@@ -39,7 +39,13 @@ cd sub-tracker
 
 Installs `~/Applications/Sub Tracker.app` without administrator access. Accounts and data stay on your Mac.
 
-Click the provider readouts beside your camera cutout or the menu bar icon. Use the sliders button for Settings. Click outside or press Escape to collapse the usage panel.
+Hover over the real camera notch to expand usage. Move away to close it. Click the notch to keep it open; click again, click outside, or press Escape to close. Use the sliders button for Settings. The menu bar icon opens the same accounts.
+
+The notch interaction takes inspiration from [Boring Notch](https://github.com/TheBoredTeam/boring.notch). The closed state has no provider icons or percentages beside the cutout. Reduce Motion is respected.
+
+<p align="center">
+  <img src="docs/images/notch.jpg" alt="Expanded notch panel with demo accounts" width="410">
+</p>
 
 <p align="center">
   <img src="docs/images/settings.png" alt="Settings with Notch selected, launch at login, and account controls" width="680">
@@ -77,7 +83,7 @@ See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.3.1** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
+Version **0.4.0** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 
@@ -102,7 +108,7 @@ swift run SubTracker --demo --coding --window
 ./scripts/package.sh
 ```
 
-`--demo` uses sample accounts and makes no provider requests or credential changes. The 46 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, regional keys, read-only SQLite access, CLI version gates, timeouts, and process cleanup.
+`--demo` uses sample accounts and makes no provider requests or credential changes. The 50 dependency-free checks run with temporary homes and synthetic credentials. They cover quota parsing, discovery, account identity, safe switching, file permissions, regional keys, read-only SQLite access, CLI version gates, timeouts, process cleanup, and notch hover, pinning, and dismissal.
 
 CI checks Apple Silicon and Intel builds. Version tags publish universal preview downloads after those checks pass. See [CONTRIBUTING.md](CONTRIBUTING.md) and [release instructions](docs/RELEASING.md).
 
