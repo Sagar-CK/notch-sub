@@ -50,10 +50,8 @@ private final class NotchHostingView: NSHostingView<NotchView> {
   @Published private(set) var headerHeight: CGFloat = 0
   @Published private(set) var expandedHeight: CGFloat = 0
   var compactAccounts: [Account] {
-    store.visibleAccounts.filter {
-      guard $0.showsInCompactView, $0.issue == nil, let usage = $0.usage else { return false }
-      return !usage.isStale() && !usage.windows.isEmpty
-    }
+    let provider = UserDefaults.standard.string(forKey: "compactProvider") ?? ""
+    return store.compactAccounts.filter { provider.isEmpty || $0.provider.rawValue == provider }
   }
   var wingWidth: CGFloat { compactAccounts.isEmpty ? 0 : 48 }
   var compactWidth: CGFloat { cameraWidth + wingWidth * 2 }
@@ -268,11 +266,13 @@ private final class NotchHostingView: NSHostingView<NotchView> {
     let nextExpandedFrame = NSRect(
       x: center - width / 2, y: screen.frame.maxY - height, width: width, height: height)
     // Only the hit area extends beyond the hardware. No extra notch is drawn.
+    let previousCollapsedFrame = collapsedFrame
     collapsedFrame = NSRect(
       x: center - (closedWidth + 12) / 2, y: screen.frame.maxY - newHeaderHeight - 4,
       width: closedWidth + 12, height: newHeaderHeight + 4)
     let changed =
       expanded != willExpand || expandedFrame != nextExpandedFrame
+      || collapsedFrame != previousCollapsedFrame
       || cameraWidth != newCameraWidth || headerHeight != newHeaderHeight
     expandedFrame = nextExpandedFrame
     guard changed else { return }
@@ -294,7 +294,7 @@ private final class NotchHostingView: NSHostingView<NotchView> {
     }
     let motion: Animation? =
       shouldAnimate
-      ? .spring(response: willExpand ? 0.36 : 0.4, dampingFraction: willExpand ? 0.86 : 1)
+      ? .spring(response: willExpand ? 0.42 : 0.45, dampingFraction: willExpand ? 0.8 : 1)
       : nil
     withAnimation(motion, completionCriteria: .removed) {
       expandedHeight = height
@@ -315,6 +315,7 @@ private struct NotchView: View {
   @ObservedObject var store: TrackerStore
   @ObservedObject var controller: NotchController
   let onSettings: () -> Void
+  @AppStorage("compactProvider") private var compactProvider = ""
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
@@ -339,7 +340,7 @@ private struct NotchView: View {
         .frame(width: controller.expandedWidth, height: controller.expandedHeight, alignment: .top)
         .scaleEffect(controller.expanded || reduceMotion ? 1 : 0.96, anchor: .top)
         .opacity(controller.expanded ? 1 : 0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: controller.expanded)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: controller.expanded)
         .allowsHitTesting(controller.expanded)
         .accessibilityHidden(!controller.expanded)
       }
@@ -349,9 +350,8 @@ private struct NotchView: View {
         alignment: .top
       )
       .clipShape(
-        UnevenRoundedRectangle(
-          topLeadingRadius: 0, bottomLeadingRadius: controller.expanded ? 24 : 10,
-          bottomTrailingRadius: controller.expanded ? 24 : 10, topTrailingRadius: 0)
+        NotchOutline(
+          shoulder: controller.expanded ? 10 : 6, corner: controller.expanded ? 24 : 12)
       )
       .opacity(controller.surfaceVisible || !controller.compactAccounts.isEmpty ? 1 : 0)
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -359,7 +359,7 @@ private struct NotchView: View {
         if !controller.expanded {
           Button(action: controller.toggle) {
             Color.clear.frame(
-              width: controller.cameraWidth + 12, height: controller.headerHeight + 4
+              width: controller.compactWidth + 12, height: controller.headerHeight + 4
             )
             .contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityLabel("Open usage")
@@ -370,10 +370,14 @@ private struct NotchView: View {
   }
 
   private var compactStrip: some View {
-    TimelineView(.periodic(from: .now, by: 4)) { timeline in
+    TimelineView(
+      .animation(minimumInterval: 4, paused: !compactProvider.isEmpty || controller.expanded)
+    ) { timeline in
       let accounts = controller.compactAccounts
       if !accounts.isEmpty {
-        let index = Int(timeline.date.timeIntervalSinceReferenceDate / 4) % accounts.count
+        let index =
+          compactProvider.isEmpty
+          ? Int(timeline.date.timeIntervalSinceReferenceDate / 4) % accounts.count : 0
         let account = accounts[index]
         HStack(spacing: 0) {
           ProviderIcon(provider: account.provider, size: 18)

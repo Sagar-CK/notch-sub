@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2 (2026-10-25, Preview)
+
+- Add Settings → Notch display with Cycle or a pinned provider. The choice persists across launches.
+- Match Boring Notch’s 300 ms hover delay, 100 ms exit delay, and 0.42/0.45-second opening/closing springs.
+- Smooth content transitions over 350 ms and pause rotation while the panel is expanded or a provider is pinned.
+- Apply the curved outline to the rendered surface and resize the compact hit area when availability changes.
+
 ## 0.4.1 (2026-10-25, Preview)
 
 - Add small side compartments with an active provider icon and remaining percentage, cycling every four seconds.

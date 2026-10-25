@@ -369,6 +369,7 @@ struct SettingsView: View {
   @ObservedObject var store: TrackerStore
   @AppStorage("showRemaining") var showRemaining = true
   @AppStorage("placement") var placement = Placement.notch.rawValue
+  @AppStorage("compactProvider") var compactProvider = ""
   @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
   @State private var name = ""
   @State private var key = ""
@@ -387,6 +388,28 @@ struct SettingsView: View {
           .onChange(of: placement) { _, _ in store.changed?() }
       }
       VStack(spacing: 16) {
+        if placement != Placement.menuBar.rawValue {
+          HStack {
+            Text("Notch display")
+            Spacer()
+            Picker("Notch display", selection: $compactProvider) {
+              Text("Cycle").tag("")
+              ForEach(
+                Provider.allCases.filter { provider in
+                  store.compactAccounts.contains { $0.provider == provider }
+                }
+              ) { provider in
+                Text(provider.title).tag(provider.rawValue)
+              }
+              if let pinned = Provider(rawValue: compactProvider),
+                !store.compactAccounts.contains(where: { $0.provider == pinned })
+              {
+                Text("\(pinned.title) (unavailable)").tag(pinned.rawValue).disabled(true)
+              }
+            }.labelsHidden().frame(width: 160)
+              .onChange(of: compactProvider) { _, _ in store.changed?() }
+          }
+        }
         if placement != Placement.notch.rawValue {
           HStack {
             Text("Menu bar percentage")

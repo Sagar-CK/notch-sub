@@ -32,6 +32,12 @@ import SubTrackerCore
     }
   }
   var visibleAccounts: [Account] { demo ? accounts : accounts.filter(\.canDisplayUsage) }
+  var compactAccounts: [Account] {
+    visibleAccounts.filter {
+      guard $0.showsInCompactView, $0.issue == nil, let usage = $0.usage else { return false }
+      return !usage.isStale() && !usage.windows.isEmpty
+    }
+  }
   var menuTitle: String {
     guard UserDefaults.standard.object(forKey: "showRemaining") as? Bool ?? true else { return "" }
     let remaining = visibleAccounts.filter(\.showsInCompactView).compactMap { a -> Double? in
