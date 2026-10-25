@@ -4,6 +4,8 @@ import SubTrackerCore
 import SwiftUI
 
 enum Style {
+  static let panelInset: CGFloat = 32
+  static let providerHeadingSize: CGFloat = 15
   static let green = Color(red: 0.31, green: 0.48, blue: 0.40)
   static let orange = Color(red: 0.77, green: 0.45, blue: 0.28)
   static let secondary = Color.primary.opacity(0.48)
@@ -65,7 +67,7 @@ struct TrackerView: View {
                 onConnect: showSettings,
                 onLogin: { Task { if await store.prepareLogin(provider) { openLogin(provider) } } })
               if provider != store.visibleAccounts.last?.provider {
-                Divider().opacity(0.55).padding(.horizontal, 22)
+                Divider().opacity(0.55).padding(.horizontal, Style.panelInset)
               }
             }
           }
@@ -96,7 +98,7 @@ struct TrackerView: View {
           Image(systemName: "ellipsis").frame(width: 24, height: 20)
         }
         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().accessibilityLabel("More")
-      }.padding(.horizontal, 22).padding(.vertical, 10)
+      }.padding(.horizontal, Style.panelInset).padding(.vertical, 10)
     }
     .frame(width: width)
     .background(background)
@@ -139,8 +141,8 @@ struct ProviderSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
       HStack(spacing: 10) {
-        ProviderIcon(provider: provider)
-        Text(provider.title).font(.system(size: 15, weight: .semibold))
+        ProviderIcon(provider: provider, size: Style.providerHeadingSize)
+        Text(provider.title).font(.system(size: Style.providerHeadingSize, weight: .semibold))
         Spacer()
         if accounts.count == 1, accounts[0].name.isEmpty, let plan = accounts[0].planLabel {
           Text(plan).font(.system(size: 10)).foregroundStyle(Style.secondary)
@@ -171,7 +173,7 @@ struct ProviderSection: View {
           CompactAccountRow(account: account, busy: busy, onSwitch: { onSwitch(account) })
         }
       }
-    }.padding(.horizontal, 22).padding(.vertical, 18)
+    }.padding(.horizontal, Style.panelInset).padding(.vertical, 18)
   }
 }
 
