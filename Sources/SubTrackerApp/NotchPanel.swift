@@ -49,7 +49,15 @@ private final class NotchHostingView: NSHostingView<NotchView> {
   @Published private(set) var cameraWidth: CGFloat = 0
   @Published private(set) var headerHeight: CGFloat = 0
   @Published private(set) var expandedHeight: CGFloat = 0
-  var expandedWidth: CGFloat { max(410, cameraWidth + 60) }
+  var compactAccounts: [Account] {
+    store.visibleAccounts.filter {
+      guard $0.showsInCompactView, $0.issue == nil, let usage = $0.usage else { return false }
+      return !usage.isStale() && !usage.windows.isEmpty
+    }
+  }
+  var wingWidth: CGFloat { compactAccounts.isEmpty ? 0 : 48 }
+  var compactWidth: CGFloat { cameraWidth + wingWidth * 2 }
+  var expandedWidth: CGFloat { max(410, compactWidth + 32) }
   private var panel: NotchWindow!
   private var globalMonitor: Any?
   private var localMonitor: Any?
@@ -247,7 +255,8 @@ private final class NotchHostingView: NSHostingView<NotchView> {
     let center = (left.maxX + right.minX) / 2
     let newCameraWidth = right.minX - left.maxX
     let newHeaderHeight = screen.safeAreaInsets.top
-    let width = max(410, newCameraWidth + 60)
+    let closedWidth = newCameraWidth + wingWidth * 2
+    let width = max(410, closedWidth + 32)
     let willExpand = interaction.isExpanded
     let contentHeight =
       willExpand
@@ -260,8 +269,8 @@ private final class NotchHostingView: NSHostingView<NotchView> {
       x: center - width / 2, y: screen.frame.maxY - height, width: width, height: height)
     // Only the hit area extends beyond the hardware. No extra notch is drawn.
     collapsedFrame = NSRect(
-      x: center - (newCameraWidth + 12) / 2, y: screen.frame.maxY - newHeaderHeight - 4,
-      width: newCameraWidth + 12, height: newHeaderHeight + 4)
+      x: center - (closedWidth + 12) / 2, y: screen.frame.maxY - newHeaderHeight - 4,
+      width: closedWidth + 12, height: newHeaderHeight + 4)
     let changed =
       expanded != willExpand || expandedFrame != nextExpandedFrame
       || cameraWidth != newCameraWidth || headerHeight != newHeaderHeight
@@ -312,6 +321,11 @@ private struct NotchView: View {
     GeometryReader { _ in
       ZStack(alignment: .top) {
         Color.black
+        compactStrip
+          .opacity(controller.expanded ? 0 : 1)
+          .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: controller.expanded)
+          .allowsHitTesting(false)
+          .accessibilityHidden(controller.expanded)
         VStack(spacing: 0) {
           Button(action: controller.toggle) {
             Color.clear.frame(height: controller.headerHeight).contentShape(Rectangle())
@@ -330,7 +344,7 @@ private struct NotchView: View {
         .accessibilityHidden(!controller.expanded)
       }
       .frame(
-        width: controller.expanded ? controller.expandedWidth : controller.cameraWidth,
+        width: controller.expanded ? controller.expandedWidth : controller.compactWidth,
         height: controller.expanded ? controller.expandedHeight : controller.headerHeight,
         alignment: .top
       )
@@ -339,7 +353,7 @@ private struct NotchView: View {
           topLeadingRadius: 0, bottomLeadingRadius: controller.expanded ? 24 : 10,
           bottomTrailingRadius: controller.expanded ? 24 : 10, topTrailingRadius: 0)
       )
-      .opacity(controller.surfaceVisible ? 1 : 0)
+      .opacity(controller.surfaceVisible || !controller.compactAccounts.isEmpty ? 1 : 0)
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
       .overlay(alignment: .top) {
         if !controller.expanded {
@@ -353,5 +367,83 @@ private struct NotchView: View {
       }
     }
     .environment(\.colorScheme, .dark)
+  }
+
+  private var compactStrip: some View {
+    TimelineView(.periodic(from: .now, by: 4)) { timeline in
+      let accounts = controller.compactAccounts
+      if !accounts.isEmpty {
+        let index = Int(timeline.date.timeIntervalSinceReferenceDate / 4) % accounts.count
+        let account = accounts[index]
+        HStack(spacing: 0) {
+          ProviderIcon(provider: account.provider, size: 18)
+            .id(account.id)
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            .frame(width: controller.wingWidth)
+          Color.clear.frame(width: controller.cameraWidth)
+          Text("\(remaining(account))%")
+            .font(.system(size: 11, weight: .medium)).monospacedDigit()
+            .contentTransition(.numericText())
+            .frame(width: controller.wingWidth)
+        }
+        .foregroundStyle(.white.opacity(0.9))
+        .frame(width: controller.compactWidth, height: controller.headerHeight)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: account.id)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(account.provider.title), \(remaining(account)) percent left")
+      }
+    }
+  }
+
+  private func remaining(_ account: Account) -> Int {
+    Int((account.usage?.windows.map(\.remainingPercent).min() ?? 0).rounded(.down))
+  }
+
+}
+
+/// A continuous outline that joins the menu bar with concave shoulders.
+private struct NotchOutline: Shape {
+  var shoulder: CGFloat
+  var corner: CGFloat
+  var animatableData: AnimatablePair<CGFloat, CGFloat> {
+    get { AnimatablePair(shoulder, corner) }
+    set {
+      shoulder = newValue.first
+      corner = newValue.second
+    }
+  }
+
+  func path(in rect: CGRect) -> Path {
+    let s = min(shoulder, rect.height / 3)
+    let r = min(corner, (rect.height - s) / 2)
+    let left = rect.minX + s
+    let right = rect.maxX - s
+    let bottom = rect.maxY
+    let top = rect.minY
+    let k: CGFloat = 0.55228475
+    return Path { path in
+      path.move(to: CGPoint(x: rect.minX, y: top))
+      path.addLine(to: CGPoint(x: rect.maxX, y: top))
+      path.addCurve(
+        to: CGPoint(x: right, y: top + s),
+        control1: CGPoint(x: rect.maxX - s * k, y: top),
+        control2: CGPoint(x: right, y: top + s * (1 - k)))
+      path.addLine(to: CGPoint(x: right, y: bottom - r))
+      path.addCurve(
+        to: CGPoint(x: right - r, y: bottom),
+        control1: CGPoint(x: right, y: bottom - r * (1 - k)),
+        control2: CGPoint(x: right - r * (1 - k), y: bottom))
+      path.addLine(to: CGPoint(x: left + r, y: bottom))
+      path.addCurve(
+        to: CGPoint(x: left, y: bottom - r),
+        control1: CGPoint(x: left + r * (1 - k), y: bottom),
+        control2: CGPoint(x: left, y: bottom - r * (1 - k)))
+      path.addLine(to: CGPoint(x: left, y: top + s))
+      path.addCurve(
+        to: CGPoint(x: rect.minX, y: top),
+        control1: CGPoint(x: left, y: top + s * (1 - k)),
+        control2: CGPoint(x: rect.minX + s * k, y: top))
+      path.closeSubpath()
+    }
   }
 }

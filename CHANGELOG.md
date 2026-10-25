@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 (2026-10-25, Preview)
+
+- Add small side compartments with an active provider icon and remaining percentage, cycling every four seconds.
+- Use concave shoulders and rounded lower corners to join the real notch.
+- Require 350 ms of continuous hover before opening; brief pointer passes cancel it.
+- Keep the smooth surface animation and hide stale, unknown, or unverified compact readings.
+
 ## 0.4.0 (2026-10-24, Preview)
 
 - Expand a black usage panel from the actual camera notch on hover.

@@ -15,7 +15,7 @@ public struct NotchInteraction {
     guard inside != pointerInside else { return }
     pointerInside = inside
     if inside {
-      deadline = presentation == .closed && !suppressedUntilExit ? time + 0.14 : nil
+      deadline = presentation == .closed && !suppressedUntilExit ? time + 0.35 : nil
     } else {
       suppressedUntilExit = false
       deadline = presentation == .hover ? time + 0.32 : nil

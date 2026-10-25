@@ -41,7 +41,7 @@ Installs `~/Applications/Sub Tracker.app` without administrator access. Accounts
 
 Hover over the real camera notch to expand usage. Move away to close it. Click the notch to keep it open; click again, click outside, or press Escape to close. Use the sliders button for Settings. The menu bar icon opens the same accounts.
 
-The notch interaction takes inspiration from [Boring Notch](https://github.com/TheBoredTeam/boring.notch). The closed state has no provider icons or percentages beside the cutout. Reduce Motion is respected.
+The notch interaction takes inspiration from [Boring Notch](https://github.com/TheBoredTeam/boring.notch). The compact view cycles through active, verified subscriptions every four seconds, with a provider icon and its lowest remaining allowance. It uses curved shoulders around the real cutout. Stale or unknown percentages stay hidden. Hover for 350 ms to expand; passing across it briefly does not open it. Reduce Motion is respected.
 
 <p align="center">
   <img src="docs/images/notch.jpg" alt="Expanded notch panel with demo accounts" width="410">
@@ -83,7 +83,7 @@ See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.4.0** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
+Version **0.4.1** is an early preview. Codex, Claude, and Cursor have been checked with live accounts. The other integrations have fixture checks and still need live-account validation. Devin/Windsurf cache-only entries are hidden because they cannot verify an account. Kiro currently requires its CLI sign-in. Some providers do not expose a remaining allowance for every plan. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 
