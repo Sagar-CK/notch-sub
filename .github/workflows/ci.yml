@@ -23,14 +23,14 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Show toolchain
         run: swift --version
       - name: Check, build, and verify
         run: ./scripts/check.sh
       - name: Package test artifact
         run: ./scripts/package.sh --skip-build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sub-tracker-${{ matrix.runner }}
           path: |
