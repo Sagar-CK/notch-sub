@@ -2,6 +2,8 @@
 
 Sub Tracker is a small native macOS app. Keep changes focused and preserve the quiet UI: provider marks, account names, usage, and controls. Put explanations in tooltips or documentation.
 
+Use direct sentences in product copy. Avoid taglines, decorative captions, repeated labels, and em dashes.
+
 ## Run locally
 
 Use macOS 14 or later with Swift 6 Command Line Tools or Xcode:

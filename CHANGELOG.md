@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — 2026-10-24 (Preview)
+## 0.1.0 (2026-10-24, Preview)
 
 - Read Codex, Claude, and Z.ai / BigModel subscription usage from local sign-ins.
 - Display remaining allowance, reset times, credit balances, and explicitly reported weekly spend.

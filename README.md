@@ -1,8 +1,6 @@
 # Sub Tracker
 
-Your AI accounts and remaining usage, one glance away.
-
-A free, open-source macOS app for Codex, Claude, and Z.ai. It reads your own local sign-ins, shows allowances and reset times, and helps you switch accounts. Built with SwiftUI and AppKit, with no third-party runtime dependencies. MIT licensed.
+A macOS app for Codex, Claude, and Z.ai usage and account switching.
 
 [Download the app](https://github.com/Sagar-CK/sub-tracker/releases) · [Build from source](#build-from-source) · [Contribute](CONTRIBUTING.md)
 
@@ -11,14 +9,7 @@ A free, open-source macOS app for Codex, Claude, and Z.ai. It reads your own loc
   <img src="docs/images/usage-light.png" alt="Light appearance with the same sample accounts" width="46%">
 </p>
 
-*Sample accounts. Product images finished with CleanShot X.*
-
-- **At your notch.** Compact readouts flank the actual camera cutout. Click to expand accounts beneath it. Macs without a notch use the menu bar.
-- **Only your providers.** Detected and connected accounts appear with their current plan, remaining allowance, and reset times.
-- **Local account switching.** Switch supported CLI sign-ins and keep saved Claude and Z.ai credentials in Keychain.
-- **Your placement.** Choose Notch, Menu bar, or Both. Follow system light or dark appearance in the menu bar; notch mode stays dark.
-
-No monthly bills or estimated dollar costs. Credits remain credits. Weekly dollar spend is shown only when a provider explicitly reports it; the Codex and Claude responses tested so far do not.
+Choose Notch, Menu bar, or Both in Settings. Macs without a notch use the menu bar.
 
 ## Download and install
 
@@ -44,7 +35,7 @@ cd sub-tracker
 ./scripts/install.sh
 ```
 
-This builds and installs `~/Applications/Sub Tracker.app` without administrator access. No hosted service or shared API key is required. Each installation uses that person's own provider sign-ins and stores its data on their Mac.
+Installs `~/Applications/Sub Tracker.app` without administrator access. Accounts and data stay on your Mac.
 
 Click the provider readouts beside your camera cutout or the menu bar icon. Use the sliders button for Settings. Click outside or press Escape to collapse the usage panel.
 
@@ -60,9 +51,11 @@ Click the provider readouts beside your camera cutout or the menu bar icon. Use 
 | Claude Code | Five-hour, weekly, and model-specific allowances | Saved Claude Code OAuth accounts |
 | Z.ai / BigModel | Coding Plan quota through a connected key | Existing Z.ai configuration in Claude Code |
 
-Installed apps alone do not prove a paid subscription. Claude Desktop and ZCode manage their own sign-ins. Keychain-only Codex accounts are not supported. Restart running clients after switching so they load the new sign-in.
+Claude Desktop and ZCode manage their own sign-ins. Keychain-only Codex accounts are not supported. Restart running clients after switching.
 
-See [account discovery, switching, and data storage](docs/ACCOUNTS.md) for exact behavior.
+Usage shows provider allowances and credits. Weekly dollar spend appears only when a provider reports it. Monthly bills and estimated costs are not displayed.
+
+See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
@@ -76,9 +69,11 @@ Downloads and local builds are ad-hoc signed. Developer ID signing and Apple not
 ./scripts/package.sh --universal
 ```
 
-Creates a universal `.app`, a drag-to-Applications `.dmg`, a `.zip`, and `SHA256SUMS.txt` in `dist/`. These contain only the app and license notices, with installation instructions in the DMG. Your accounts, keys, cache, and preferences are never included. Omit `--universal` to build only for your Mac's architecture.
+Creates an `.app`, `.dmg`, `.zip`, and `SHA256SUMS.txt` in `dist/` for Apple Silicon and Intel. Account data is excluded. Omit `--universal` to build only for your Mac's architecture.
 
 ## Development
+
+Built with SwiftUI and AppKit, with no third-party runtime dependencies.
 
 ```sh
 swift run SubTracker --demo --window
@@ -89,7 +84,7 @@ swift run SubTracker --demo --settings
 
 `--demo` uses sample accounts and makes no provider requests or credential changes. The 16 dependency-free checks run with temporary homes and synthetic credentials. They cover usage parsing, stale data, discovery, account identity, safe switching, and file permissions.
 
-CI builds and checks Apple Silicon and Intel targets on macOS. A version tag runs both checks before building and publishing the universal preview download. See [CONTRIBUTING.md](CONTRIBUTING.md), [release instructions](docs/RELEASING.md), and the [image workflow](docs/images/README.md).
+CI checks Apple Silicon and Intel builds. Version tags publish universal preview downloads after those checks pass. See [CONTRIBUTING.md](CONTRIBUTING.md) and [release instructions](docs/RELEASING.md).
 
 ## Privacy
 

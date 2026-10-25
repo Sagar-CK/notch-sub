@@ -8,7 +8,7 @@
 
 Only detected or explicitly connected providers appear. Installed apps alone are not evidence of a paid subscription. A plan name reflects the provider's reported plan, not billing verification.
 
-**Usage is not money.** Bars show remaining allowance for the actual provider window, including Codex plans whose primary window is weekly. Credits stay labeled credits. Weekly dollar spend appears only if the provider supplies an explicitly weekly monetary amount, currency, and units; the Codex/Claude responses tested locally do not. Monthly extra usage is never relabeled as weekly spend.
+Bars show remaining allowance for each provider window, including Codex plans whose primary window is weekly. Credits stay labeled credits. Weekly dollar spend appears only if the provider supplies an explicitly weekly monetary amount, currency, and units; the Codex/Claude responses tested locally do not. Monthly extra usage is never relabeled as weekly spend.
 
 ## Refresh and switching
 
