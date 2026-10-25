@@ -2,13 +2,15 @@ import CoreFoundation
 import Foundation
 
 public enum Provider: String, CaseIterable, Codable, Sendable, Identifiable {
-  case codex, claude, zai
+  case codex, claude, zai, gemini, antigravity
   public var id: String { rawValue }
   public var title: String {
     switch self {
     case .codex: "Codex"
     case .claude: "Claude"
     case .zai: "Z.ai"
+    case .gemini: "Gemini"
+    case .antigravity: "Antigravity"
     }
   }
   public var dashboard: URL {
@@ -17,6 +19,8 @@ public enum Provider: String, CaseIterable, Codable, Sendable, Identifiable {
       case .codex: "https://chatgpt.com/codex/settings/usage"
       case .claude: "https://claude.ai/settings/usage"
       case .zai: "https://z.ai/manage-apikey/coding-plan/personal/my-plan"
+      case .gemini: "https://geminicli.com/docs/resources/quota-and-pricing/"
+      case .antigravity: "https://antigravity.google/"
       }
     return URL(string: value)!
   }
@@ -86,6 +90,9 @@ public enum AuthSource: Equatable, Sendable {
   case vault(String)
   case zaiSettings(URL)
   case zaiEnvironment
+  case geminiFile(URL)
+  case geminiKeychain
+  case antigravityCLI(URL)
   case unavailable
 }
 
@@ -126,6 +133,9 @@ public struct Account: Identifiable, Equatable, Sendable {
     default: return value?.replacingOccurrences(of: "_", with: " ").capitalized
     }
   }
+  // Google CLI metadata can lag an external account change. Revalidate each refresh;
+  // the Antigravity report does not provide an identity at all.
+  public var canCacheUsage: Bool { provider != .gemini && provider != .antigravity }
 }
 
 public enum TrackerError: LocalizedError {

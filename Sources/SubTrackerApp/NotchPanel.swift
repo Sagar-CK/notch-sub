@@ -152,11 +152,18 @@ private struct NotchView: View {
             if active.isEmpty {
               Image(systemName: "chart.bar.xaxis").foregroundStyle(.white.opacity(0.8))
             }
-            ForEach(active.prefix(1)) { account in readout(account) }
+            ForEach(active.prefix(active.count > 3 ? 2 : 1)) { account in readout(account) }
           }.frame(maxWidth: .infinity, alignment: .trailing).padding(.trailing, 10)
           Color.clear.frame(width: controller.cameraWidth)
           HStack(spacing: 10) {
-            ForEach(active.dropFirst().prefix(2)) { account in readout(account) }
+            ForEach(active.dropFirst(active.count > 3 ? 2 : 1).prefix(active.count > 4 ? 1 : 2)) {
+              account in readout(account)
+            }
+            if active.count > 4 {
+              Text("+\(active.count - 3)").font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.85))
+                .help("\(active.count - 3) more providers")
+            }
           }.frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 10)
         }.frame(maxWidth: .infinity).frame(height: controller.headerHeight).contentShape(
           Rectangle())
@@ -183,7 +190,7 @@ private struct NotchView: View {
       let remaining = account.usage?.windows.map(\.remainingPercent).min()
       Text(
         account.issue == nil && account.usage?.isStale() == false
-          ? remaining.map { "\(Int($0))%" } ?? "—" : "—"
+          ? remaining.map { "\(Int($0))%" } ?? "?" : "?"
       )
       .font(.system(size: 10, weight: .medium)).monospacedDigit()
     }.foregroundStyle(.white.opacity(0.85)).fixedSize()

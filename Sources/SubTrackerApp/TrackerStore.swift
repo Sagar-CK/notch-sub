@@ -15,7 +15,7 @@ import SubTrackerCore
   var changed: (() -> Void)?
   let demo: Bool
 
-  init(demo: Bool = false) {
+  init(demo: Bool = false, googleDemo: Bool = false) {
     self.demo = demo
     local = LocalAccounts()
     if !demo,
@@ -25,7 +25,7 @@ import SubTrackerCore
       cache = saved
     }
     if demo {
-      accounts = Self.demoAccounts
+      accounts = googleDemo ? Self.googleDemoAccounts : Self.demoAccounts
       refreshedAt = Date()
     }
   }
@@ -57,7 +57,9 @@ import SubTrackerCore
     let previous = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, $0) })
     accounts = discovered.map { account in
       var a = account
-      let best = [account.usage, previous[account.id]?.usage, cache[account.id]].compactMap { $0 }
+      let best =
+        (account.canCacheUsage
+        ? [account.usage, previous[account.id]?.usage, cache[account.id]] : []).compactMap { $0 }
         .max { $0.fetchedAt < $1.fetchedAt }
       a.usage = best
       a.issue = previous[account.id]?.issue ?? account.issue
@@ -69,17 +71,30 @@ import SubTrackerCore
       if let retry = retryAfter[account.id], retry > now { return false }
       return now.timeIntervalSince(lastAttempts[account.id] ?? .distantPast) >= 60
     }
+    for index in accounts.indices
+    where !accounts[index].canCacheUsage && accounts[index].issue == nil
+      && !eligible.contains(where: { $0.id == accounts[index].id })
+    {
+      accounts[index].issue = "Refresh available in 1m"
+    }
     for account in eligible { lastAttempts[account.id] = now }
     await withTaskGroup(of: (String, UsageSnapshot?, String?).self) { group in
       for account in eligible {
         group.addTask {
           do {
+            if case .antigravityCLI(let executable) = account.source {
+              let usage = try await Task.detached(priority: .utility) {
+                try AntigravityUsage.fetch(executable: executable)
+              }.value
+              return (account.id, usage, nil)
+            }
             let credentials = try await Task.detached(priority: .utility) {
               try local.credentials(for: account)
             }.value
             let usage = try await UsageClient().fetch(
               provider: account.provider, token: credentials.token,
-              accountID: credentials.accountID, zaiHost: credentials.host)
+              accountID: credentials.accountID, zaiHost: credentials.host,
+              projectID: credentials.projectID)
             return (account.id, usage, nil)
           } catch {
             let issue = (error as? TrackerError)?.localizedDescription ?? "Connection unavailable"
@@ -91,7 +106,8 @@ import SubTrackerCore
         guard let index = accounts.firstIndex(where: { $0.id == id }) else { continue }
         if let usage {
           accounts[index].usage = usage
-          cache[id] = usage
+          if accounts[index].canCacheUsage { cache[id] = usage }
+          if accounts[index].provider == .antigravity { accounts[index].isActive = true }
           retryAfter[id] = nil
         }
         accounts[index].issue = issue
@@ -101,13 +117,13 @@ import SubTrackerCore
       }
     }
     if !eligible.isEmpty { refreshedAt = Date() }
-    cache = cache.filter { id, _ in accounts.contains { $0.id == id } }
+    cache = cache.filter { id, _ in accounts.contains { $0.id == id && $0.canCacheUsage } }
     if let data = try? JSONEncoder().encode(cache) {
       try? PrivateFiles.write(data, to: local.paths.support.appendingPathComponent("usage.json"))
     }
   }
   func activate(_ account: Account) async {
-    guard !switching, !refreshing, !demo else { return }
+    guard !switching, !refreshing, !demo, account.canSwitch else { return }
     switching = true
     let local = self.local
     do {
@@ -161,6 +177,31 @@ import SubTrackerCore
       notice = error.localizedDescription
       return false
     }
+  }
+  static var googleDemoAccounts: [Account] {
+    let now = Date()
+    return [
+      Account(
+        id: "demo-gemini", provider: .gemini, name: "Work", plan: "Code Assist Standard",
+        isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "pro", title: "Pro", usedPercent: 25, resetsAt: now.addingTimeInterval(3600 * 8)),
+          UsageWindow(
+            id: "flash", title: "Flash", usedPercent: 12, resetsAt: now.addingTimeInterval(3600 * 8)
+          ),
+        ]), canSwitch: false),
+      Account(
+        id: "demo-antigravity", provider: .antigravity, name: "Local CLI", isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "gemini-weekly", title: "Gemini Models · Weekly", usedPercent: 35,
+            resetsAt: now.addingTimeInterval(3600 * 42)),
+          UsageWindow(
+            id: "claude-weekly", title: "Claude and GPT models · Weekly", usedPercent: 58,
+            resetsAt: now.addingTimeInterval(3600 * 42)),
+        ]), canSwitch: false),
+    ]
   }
   static var demoAccounts: [Account] {
     let now = Date()

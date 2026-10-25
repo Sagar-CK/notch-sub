@@ -142,7 +142,7 @@ public enum UsageParser {
 }
 
 // Never follow redirects with provider credentials, log response bodies, or cache authentication headers.
-private final class NoRedirect: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+final class NoRedirect: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
   func urlSession(
     _ session: URLSession, task: URLSessionTask,
     willPerformHTTPRedirection response: HTTPURLResponse,
@@ -153,8 +153,12 @@ private final class NoRedirect: NSObject, URLSessionTaskDelegate, @unchecked Sen
 public struct UsageClient: Sendable {
   public init() {}
   public func fetch(
-    provider: Provider, token: String, accountID: String? = nil, zaiHost: String = "api.z.ai"
+    provider: Provider, token: String, accountID: String? = nil, zaiHost: String = "api.z.ai",
+    projectID: String? = nil
   ) async throws -> UsageSnapshot {
+    if provider == .gemini {
+      return try await fetchGemini(token: token, projectID: projectID, expectedEmail: accountID)
+    }
     let url: URL
     switch provider {
     case .codex: url = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
@@ -164,6 +168,7 @@ public struct UsageClient: Sendable {
         throw TrackerError.message("Unsupported Z.ai host")
       }
       url = URL(string: "https://\(zaiHost)/api/monitor/usage/quota/limit")!
+    case .gemini, .antigravity: throw TrackerError.message("Usage source unavailable")
     }
     var request = URLRequest(url: url, timeoutInterval: 20)
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -199,6 +204,7 @@ public struct UsageClient: Sendable {
     case .zai:
       if json["success"] as? Bool == false { throw TrackerError.message("Z.ai rejected this key") }
       snapshot = UsageParser.zai(json)
+    case .gemini, .antigravity: throw TrackerError.message("Usage source unavailable")
     }
     guard !snapshot.windows.isEmpty || snapshot.creditBalance != nil else {
       throw TrackerError.message("Usage not reported")

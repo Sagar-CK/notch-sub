@@ -31,7 +31,7 @@ import SwiftUI
     {
       UserDefaults.standard.set(placement.rawValue, forKey: "placement")
     }
-    store = TrackerStore(demo: args.contains("--demo"))
+    store = TrackerStore(demo: args.contains("--demo"), googleDemo: args.contains("--google"))
     if args.contains("--diagnose") {
       Task {
         await store.refresh()

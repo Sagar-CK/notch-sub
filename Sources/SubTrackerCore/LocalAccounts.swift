@@ -7,12 +7,17 @@ public struct LocalPaths: Sendable {
   public var home: URL
   public var codex: URL
   public var claude: URL
+  public var gemini: URL
+  public var environment: [String: String]
   public var support: URL
   public init(
     home: URL = FileManager.default.homeDirectoryForCurrentUser,
     environment: [String: String] = ProcessInfo.processInfo.environment
   ) {
     self.home = home
+    self.environment = environment
+    gemini = (environment["GEMINI_CLI_HOME"].map { URL(fileURLWithPath: $0) } ?? home)
+      .appendingPathComponent(".gemini")
     codex =
       environment["CODEX_HOME"].map { URL(fileURLWithPath: $0) }
       ?? home.appendingPathComponent(".codex")
@@ -117,6 +122,7 @@ public struct Credentials: Sendable {
   public var token: String
   public var accountID: String?
   public var host: String = "api.z.ai"
+  public var projectID: String? = nil
 }
 
 public struct LocalAccounts: Sendable {
@@ -250,6 +256,7 @@ public struct LocalAccounts: Sendable {
       result.append(
         Account(id: "zai-unconnected", provider: .zai, name: "ZCode", issue: "Connect Coding Plan"))
     }
+    result += discoverGoogleAccounts()
     return result.sorted {
       if $0.provider != $1.provider {
         return Provider.allCases.firstIndex(of: $0.provider)! < Provider.allCases.firstIndex(
@@ -320,6 +327,10 @@ public struct LocalAccounts: Sendable {
         throw TrackerError.message("Account changed · refresh")
       }
       return Credentials(token: key)
+    case .geminiFile, .geminiKeychain:
+      return try geminiCredentials(for: account)
+    case .antigravityCLI:
+      throw TrackerError.message("Read usage through Antigravity CLI")
     case .unavailable: throw TrackerError.message("Connect Coding Plan")
     }
   }

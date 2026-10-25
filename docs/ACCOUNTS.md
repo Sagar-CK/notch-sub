@@ -6,13 +6,20 @@
 - **Claude:** Detects the Claude Code account and reads five-hour, weekly, and model-specific allowances. Uses the existing macOS credential or `.credentials.json`. Save each sign-in from the Claude menu to enable switching; saved credentials stay in Keychain. Switching updates Claude Code's OAuth credential and account metadata, preserving unrelated settings and MCP credentials. Claude Desktop/browser sign-ins are separate.
 - **Z.ai / BigModel:** Detects keys in Claude Code's `settings.json` when its base URL is an allowlisted Z.ai endpoint, or `ZAI_API_KEY` in the app's environment. Connect a Coding Plan key privately in Settings. Switching saved keys updates an **existing** Z.ai configuration in Claude Code. ZCode desktop's own login must be changed in ZCode; this app does not read its private browser storage. If ZCode is installed without a readable key, a Connect row appears.
 
-Only detected or explicitly connected providers appear. Installed apps alone are not evidence of a paid subscription. A plan name reflects the provider's reported plan, not billing verification.
+- **Gemini:** Reads the active Gemini CLI OAuth sign-in from `~/.gemini/oauth_creds.json` or the CLI's `gemini-cli-oauth` Keychain item. `GEMINI_CLI_HOME` overrides the home containing `.gemini`. Old account names without credentials, API-key mode, Vertex mode, and the CLI's encrypted fallback store are not supported. Google userinfo verifies known account identities before fetching quotas. OAuth refresh and account changes stay in Gemini CLI. `GOOGLE_CLOUD_PROJECT` or `GOOGLE_CLOUD_PROJECT_ID` can supply the Code Assist project when inherited by the app.
+- **Antigravity:** Finds the installed `agy` CLI through PATH, `~/.local/bin`, `~/bin`, or standard Homebrew locations. `ANTIGRAVITY_CLI_PATH` can select an absolute executable path. Requires version 1.1.11 or later, and a working CLI sign-in. Runs the read-only `/usage` command in JSON mode; it does not send a model prompt. Shows only reported quota buckets. The report omits account and plan identity, so the app labels it Local CLI and does not infer a paid plan or offer switching.
+
+Google ended Gemini CLI OAuth support for individual Free, AI Pro, and Ultra plans in June 2026. Use Antigravity for those plans. Existing eligible Code Assist accounts use the Gemini integration. Neither integration promises a fixed allowance or infers a plan from quota size.
+
+Only detected or explicitly connected providers appear. Antigravity becomes active only after a successful usage report. Installed apps alone are not evidence of a paid subscription. A plan name reflects the provider's reported plan, not billing verification.
 
 Bars show remaining allowance for each provider window, including Codex plans whose primary window is weekly. Credits stay labeled credits. Weekly dollar spend appears only if the provider supplies an explicitly weekly monetary amount, currency, and units; the Codex/Claude responses tested locally do not. Monthly extra usage is never relabeled as weekly spend.
 
 ## Refresh and switching
 
 Usage refreshes every five minutes and after wake. Manual refresh has a one-minute per-account floor; HTTP 429 adds a 15-minute cooldown. Cached/expired readings are marked. A passed reset time never silently becomes 100% available. HTTP 401/403 requires the provider's own sign-in. The app does not rotate OAuth refresh tokens in the background.
+
+Google readings are revalidated on refresh and are not persisted in the usage cache. Antigravity's CLI owns its token refresh. Its subprocess runs in a private temporary directory with browser launchers blocked and automatic CLI updates disabled. Output is capped at 1 MiB with a 45-second deadline. Cleanup stops its process group and same-user descendants carrying a unique probe marker, including detached MCP servers. Children that discard that marker cannot be identified by this fallback. Your independently running CLI sessions are not selected for cleanup.
 
 Switching verifies the target with the provider, preserves refreshed outgoing credentials, uses private backups and atomic file replacement, and rejects changed files or symlinks. Codex registry and legacy swap state stay aligned. This changes local sign-in files, not running agent sessions. Restart those clients afterward; their token writers do not share this app's lock.
 
@@ -21,7 +28,7 @@ Switching verifies the target with the provider, preserves refreshed outgoing cr
 
 ## Local data
 
-Direct HTTPS requests go only to `chatgpt.com`, `api.anthropic.com`, `api.z.ai`, or `open.bigmodel.cn`. Credential-bearing requests reject redirects. No analytics, backend, proxy, or browser-cookie extraction. Secrets never appear in arguments or logs. Metadata, usage, and backups live under `~/Library/Application Support/SubTracker` with private file permissions; saved Claude/Z.ai secrets use macOS Keychain. Authentication backups contain secrets and must remain private.
+Direct HTTPS requests go only to `chatgpt.com`, `api.anthropic.com`, `api.z.ai`, `open.bigmodel.cn`, `cloudcode-pa.googleapis.com`, or `www.googleapis.com`. Credential-bearing requests reject redirects. Antigravity's installed CLI uses its own network, authentication, and MCP configuration; the app's HTTP allowlist does not control that subprocess. No analytics, backend, proxy, or browser-cookie extraction. Secrets never appear in arguments or logs. Metadata, usage, and backups live under `~/Library/Application Support/SubTracker` with private file permissions; saved Claude/Z.ai secrets use macOS Keychain. Authentication backups contain secrets and must remain private.
 
 To remove: quit, disable Open at login, and remove `~/Applications/Sub Tracker.app`. Remove the support directory and Keychain items under `com.sagar.subtracker.accounts` to discard saved data. Removing the app does not sign out providers.
 
@@ -32,4 +39,6 @@ To remove: quit, disable Open at login, and remove `~/Applications/Sub Tracker.a
 - [Claude usage documentation](https://code.claude.com/docs/en/statusline). The first-party OAuth usage endpoint is not a stable public API and can change.
 - [Z.ai official usage plugin](https://github.com/zai-org/zai-coding-plugins/blob/main/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs), [ZCode usage](https://zcode.z.ai/en/docs/usage-stats), [CodexBar's quota format reference](https://github.com/steipete/CodexBar/blob/main/docs/zai.md)
 - Provider marks: [Lobe Icons](https://github.com/lobehub/lobe-icons), `@lobehub/icons-static-svg` 1.98.0. MIT license included in Resources. Marks belong to their respective owners; no affiliation implied.
+- [Gemini CLI source](https://github.com/google-gemini/gemini-cli/tree/main/packages/core/src/code_assist), [Google's individual-plan migration](https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals), [Code Assist Standard/Enterprise sunset](https://docs.cloud.google.com/gemini/docs/codeassist/sunset)
+- [Antigravity headless usage reports](https://antigravity.google/docs/cli/headless/), [Antigravity CLI](https://github.com/google-antigravity/antigravity-cli)
 - Visual direction: [Reason](https://reasonmachines.ai) and [Devin](https://devin.ai).

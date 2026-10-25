@@ -8,7 +8,8 @@ Include the app version, macOS version, affected provider, impact, and reproduct
 
 ## Data boundaries
 
-- Usage requests go directly to the allowlisted provider, with TLS validation and redirects disabled.
+- Direct usage requests go to the allowlisted provider, with TLS validation and redirects disabled.
+- Antigravity runs the installed CLI's read-only usage command with bounded output, a timeout, browser-login blockers, disabled automatic updates, and cleanup of owned processes. The CLI retains its own authentication, network, and MCP configuration. It can refresh its own credentials. Google readings are not written to the usage cache.
 - Saved Claude and Z.ai credentials use macOS Keychain. Codex continues to use its existing local file-backed sign-ins.
 - App-owned account metadata, usage cache, and authentication backups are local. Private files use mode `0600`; newly created data directories use `0700`.
 - There is no analytics, upload service, or browser-cookie extraction.
@@ -18,7 +19,7 @@ The app runs outside the App Sandbox so it can read local CLI configuration. It 
 
 ## Supported versions
 
-Security fixes target the latest source revision and latest tagged release. Version 0.1 is an early release; provider usage APIs can change without notice.
+Security fixes target the latest source revision and latest tagged release. Version 0.2 is an early release; provider usage APIs can change without notice.
 
 ## Distribution
 

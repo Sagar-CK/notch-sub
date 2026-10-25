@@ -17,9 +17,11 @@ struct ProviderIcon: View {
       ?? Bundle.module.url(forResource: provider.rawValue, withExtension: "png"),
       let image = NSImage(contentsOf: url)
     {
-      Image(nsImage: image).renderingMode(provider == .claude ? .original : .template)
-        .resizable().scaledToFit().frame(width: size, height: size).accessibilityLabel(
-          provider.title)
+      Image(nsImage: image).renderingMode(
+        [.claude, .gemini, .antigravity].contains(provider) ? .original : .template
+      )
+      .resizable().scaledToFit().frame(width: size, height: size).accessibilityLabel(
+        provider.title)
     } else {
       Text(provider.title.prefix(1)).font(.system(size: size, weight: .medium))
     }
@@ -138,6 +140,9 @@ struct ProviderSection: View {
           if provider == .zai { Button("Connect account…", action: onConnect) }
           if provider == .codex { Button("Add account…", action: onLogin) }
           if provider == .claude { Button("Sign in to another account…", action: onLogin) }
+          if provider == .gemini || provider == .antigravity {
+            Button("Open \(provider.title) CLI…", action: onLogin)
+          }
         } label: {
           Image(systemName: "ellipsis").foregroundStyle(Style.secondary).frame(
             width: 20, height: 20)
@@ -182,7 +187,8 @@ struct CompactAccountRow: View {
       } else {
         Text(account.issue ?? "Cached").font(.system(size: 10)).foregroundStyle(Style.secondary)
       }
-      Button(action: { if account.canSwitch { onSwitch() } else { openZCode() } }) {
+      Button(action: { if account.canSwitch { onSwitch() } else { openProvider(account.provider) } }
+      ) {
         Image(systemName: account.canSwitch ? "arrow.left.arrow.right" : "arrow.up.right").font(
           .system(size: 10)
         ).frame(width: 20, height: 18)
@@ -192,11 +198,12 @@ struct CompactAccountRow: View {
       )
       .help(
         !account.canSwitch
-          ? "Manage this sign-in in ZCode"
+          ? "Manage this sign-in in \(account.provider.title)"
           : account.issue == "Sign in again"
             ? "Sign in again using the provider menu" : "Make \(account.name) active"
       )
-      .accessibilityLabel(account.canSwitch ? "Switch to \(account.name)" : "Open ZCode")
+      .accessibilityLabel(
+        account.canSwitch ? "Switch to \(account.name)" : "Open \(account.provider.title)")
     }
   }
 }
@@ -222,12 +229,13 @@ struct AccountRow: View {
           if account.source == .unavailable {
             Button("Connect", action: onConnect).font(.system(size: 10)).buttonStyle(.plain)
           } else if !account.canSwitch {
-            Button(action: openZCode) {
+            Button(action: { openProvider(account.provider) }) {
               Image(systemName: "arrow.up.right").font(.system(size: 10)).frame(
                 width: 20, height: 18)
             }
-            .buttonStyle(.plain).help("Manage this sign-in in ZCode").accessibilityLabel(
-              "Open ZCode")
+            .buttonStyle(.plain).help("Manage this sign-in in \(account.provider.title)")
+            .accessibilityLabel(
+              "Open \(account.provider.title)")
           } else {
             Button(action: onSwitch) {
               Image(systemName: "arrow.left.arrow.right").font(.system(size: 10)).frame(
@@ -465,7 +473,25 @@ func openZCode() {
 
 func openLogin(_ provider: Provider) {
   // Opening a .command file avoids Apple Events permission and never interpolates user text.
-  let command = provider == .codex ? "codex login" : "claude auth login"
+  let command: String
+  switch provider {
+  case .codex: command = "codex login"
+  case .claude: command = "claude auth login"
+  case .gemini: command = "gemini"
+  case .antigravity:
+    guard
+      let executable = AntigravityUsage.executable(
+        home: FileManager.default.homeDirectoryForCurrentUser,
+        environment: ProcessInfo.processInfo.environment)
+    else {
+      NSWorkspace.shared.open(provider.dashboard)
+      return
+    }
+    command = "'" + executable.path.replacingOccurrences(of: "'", with: "'\\''") + "'"
+  case .zai:
+    openZCode()
+    return
+  }
   let text =
     "#!/bin/zsh\nexport PATH=\"$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH\"\n\(command)\n"
   let url = FileManager.default.temporaryDirectory.appendingPathComponent(
@@ -475,4 +501,8 @@ func openLogin(_ provider: Provider) {
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
     NSWorkspace.shared.open(url)
   } catch { NSSound.beep() }
+}
+
+func openProvider(_ provider: Provider) {
+  if provider == .zai { openZCode() } else { openLogin(provider) }
 }

@@ -267,7 +267,40 @@ func unwrap<T>(_ value: T?) throws -> T {
 
 @main enum Checks {
   static func main() throws {
+    if CommandLine.arguments.dropFirst().first == "--agy-fixture" {
+      try runAgyFixture()
+      return
+    }
     let checks: [(String, (SubTrackerCoreTests) throws -> Void)] = [
+      (
+        "testGeminiQuotaRejectsUnknownFractionsAndUsesLowestBucket",
+        { try $0.testGeminiQuotaRejectsUnknownFractionsAndUsesLowestBucket() }
+      ),
+      (
+        "testGeminiPlansRespectMigrationAndReportedNames",
+        { try $0.testGeminiPlansRespectMigrationAndReportedNames() }
+      ),
+      (
+        "testGeminiDiscoveryIgnoresOldAccountsAndAPIKeys",
+        { try $0.testGeminiDiscoveryIgnoresOldAccountsAndAPIKeys() }
+      ),
+      (
+        "testGeminiExpiredAndChangedIdentityNeverRewritesCredentials",
+        { try $0.testGeminiExpiredAndChangedIdentityNeverRewritesCredentials() }
+      ),
+      (
+        "testAntigravityGroupedQuotasAndMissingValues",
+        { try $0.testAntigravityGroupedQuotasAndMissingValues() }
+      ),
+      (
+        "testAntigravityExecutableAndVersionGates",
+        { try $0.testAntigravityExecutableAndVersionGates() }
+      ),
+      (
+        "testAntigravityReportAndDetachedChildCleanup",
+        { try $0.testAntigravityReportAndDetachedChildCleanup() }
+      ),
+      ("testAntigravityTimeoutAndOutputLimit", { try $0.testAntigravityTimeoutAndOutputLimit() }),
       (
         "testZaiCreditWeeklyWindowsAndUnknownTypes",
         { $0.testZaiCreditWeeklyWindowsAndUnknownTypes() }
