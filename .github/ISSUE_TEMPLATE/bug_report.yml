@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible app or provider problem.
+body:
+  - type: markdown
+    attributes:
+      value: "Do not attach real sign-in files, keys, tokens, or personal account screenshots. Use demo data. For security issues, see SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: App and macOS versions
+      placeholder: "Sub Tracker version, macOS version, Apple Silicon or Intel"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Notch
+        - Menu bar
+        - Settings
+        - Codex
+        - Claude
+        - Z.ai
+        - Gemini
+        - Antigravity
+        - GitHub Copilot
+        - Cursor
+        - Kimi
+        - MiniMax
+        - Devin / Windsurf
+        - Kiro
+        - OpenCode Go
+        - Build or install
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
