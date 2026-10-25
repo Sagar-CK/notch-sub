@@ -1,0 +1,201 @@
+import AppKit
+import Combine
+import SubTrackerCore
+
+@MainActor final class TrackerStore: ObservableObject {
+  @Published var accounts: [Account] = []
+  @Published var refreshing = false
+  @Published var refreshedAt: Date?
+  @Published var notice: String?
+  @Published var switching = false
+  let local: LocalAccounts
+  private var lastAttempts: [String: Date] = [:]
+  private var retryAfter: [String: Date] = [:]
+  private var cache: [String: UsageSnapshot] = [:]
+  var changed: (() -> Void)?
+  let demo: Bool
+
+  init(demo: Bool = false) {
+    self.demo = demo
+    local = LocalAccounts()
+    if !demo,
+      let data = try? Data(contentsOf: local.paths.support.appendingPathComponent("usage.json")),
+      let saved = try? JSONDecoder().decode([String: UsageSnapshot].self, from: data)
+    {
+      cache = saved
+    }
+    if demo {
+      accounts = Self.demoAccounts
+      refreshedAt = Date()
+    }
+  }
+  var menuTitle: String {
+    guard UserDefaults.standard.object(forKey: "showRemaining") as? Bool ?? true else { return "" }
+    let remaining = accounts.filter(\.isActive).compactMap { a -> Double? in
+      guard a.issue == nil, let usage = a.usage, !usage.isStale() else { return nil }
+      return usage.windows.map(\.remainingPercent).min()
+    }.min()
+    return remaining.map { "\(Int($0.rounded(.down)))%" } ?? ""
+  }
+  var footer: String {
+    if refreshing { return "Updating…" }
+    if !accounts.isEmpty && accounts.allSatisfy({ $0.issue != nil }) { return "Unable to update" }
+    guard let refreshedAt else { return "" }
+    let minutes = Int(Date().timeIntervalSince(refreshedAt) / 60)
+    return minutes < 1 ? "Updated just now" : "Updated \(minutes)m ago"
+  }
+  func refresh() async {
+    guard !refreshing, !switching, !demo else { return }
+    refreshing = true
+    changed?()
+    defer {
+      refreshing = false
+      changed?()
+    }
+    let local = self.local
+    let discovered = await Task.detached(priority: .utility) { local.discover() }.value
+    let previous = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, $0) })
+    accounts = discovered.map { account in
+      var a = account
+      let best = [account.usage, previous[account.id]?.usage, cache[account.id]].compactMap { $0 }
+        .max { $0.fetchedAt < $1.fetchedAt }
+      a.usage = best
+      a.issue = previous[account.id]?.issue ?? account.issue
+      return a
+    }
+    let now = Date()
+    let eligible = accounts.filter { account in
+      if case .unavailable = account.source { return false }
+      if let retry = retryAfter[account.id], retry > now { return false }
+      return now.timeIntervalSince(lastAttempts[account.id] ?? .distantPast) >= 60
+    }
+    for account in eligible { lastAttempts[account.id] = now }
+    await withTaskGroup(of: (String, UsageSnapshot?, String?).self) { group in
+      for account in eligible {
+        group.addTask {
+          do {
+            let credentials = try await Task.detached(priority: .utility) {
+              try local.credentials(for: account)
+            }.value
+            let usage = try await UsageClient().fetch(
+              provider: account.provider, token: credentials.token,
+              accountID: credentials.accountID, zaiHost: credentials.host)
+            return (account.id, usage, nil)
+          } catch {
+            let issue = (error as? TrackerError)?.localizedDescription ?? "Connection unavailable"
+            return (account.id, nil, issue)
+          }
+        }
+      }
+      for await (id, usage, issue) in group {
+        guard let index = accounts.firstIndex(where: { $0.id == id }) else { continue }
+        if let usage {
+          accounts[index].usage = usage
+          cache[id] = usage
+          retryAfter[id] = nil
+        }
+        accounts[index].issue = issue
+        if issue?.contains("Rate limited") == true {
+          retryAfter[id] = Date().addingTimeInterval(900)
+        }
+      }
+    }
+    if !eligible.isEmpty { refreshedAt = Date() }
+    cache = cache.filter { id, _ in accounts.contains { $0.id == id } }
+    if let data = try? JSONEncoder().encode(cache) {
+      try? PrivateFiles.write(data, to: local.paths.support.appendingPathComponent("usage.json"))
+    }
+  }
+  func activate(_ account: Account) async {
+    guard !switching, !refreshing, !demo else { return }
+    switching = true
+    let local = self.local
+    do {
+      let credentials = try await Task.detached { try local.credentials(for: account) }.value
+      _ = try await UsageClient().fetch(
+        provider: account.provider, token: credentials.token, accountID: credentials.accountID,
+        zaiHost: credentials.host)
+      try await Task.detached { try local.switchAccount(account) }.value
+      notice = "\(account.name) is active. Restart running clients to reload the sign-in."
+    } catch { notice = error.localizedDescription }
+    switching = false
+    await refresh()
+  }
+  func saveClaude() async {
+    guard !demo else { return }
+    let local = self.local
+    do {
+      try await Task.detached { try local.saveClaude() }.value
+      notice = "Claude sign-in saved in Keychain."
+    } catch { notice = error.localizedDescription }
+    await refresh()
+  }
+  func prepareLogin(_ provider: Provider) async -> Bool {
+    guard !switching, !demo else { return false }
+    let local = self.local
+    do {
+      try await Task.detached {
+        if provider == .codex { try local.saveCurrentCodex() }
+        if provider == .claude,
+          local.discover().contains(where: { $0.provider == .claude && $0.isActive })
+        {
+          try local.saveClaude()
+        }
+      }.value
+      return true
+    } catch {
+      notice = error.localizedDescription
+      return false
+    }
+  }
+  func connectZai(name: String, token: String, host: String) async -> Bool {
+    guard !demo else { return false }
+    do {
+      _ = try await UsageClient().fetch(
+        provider: .zai, token: token.trimmingCharacters(in: .whitespacesAndNewlines), zaiHost: host)
+      let local = self.local
+      try await Task.detached { try local.saveZai(name: name, token: token, host: host) }.value
+      await refresh()
+      return true
+    } catch {
+      notice = error.localizedDescription
+      return false
+    }
+  }
+  static var demoAccounts: [Account] {
+    let now = Date()
+    return [
+      Account(
+        id: "demo-codex-a", provider: .codex, name: "Personal", plan: "pro", isActive: true,
+        usage: UsageSnapshot(
+          windows: [
+            UsageWindow(
+              id: "weekly", title: "Weekly", usedPercent: 58,
+              resetsAt: now.addingTimeInterval(3600 * 42))
+          ], creditBalance: "1280")),
+      Account(
+        id: "demo-codex-b", provider: .codex, name: "Work", plan: "pro",
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "weekly", title: "Weekly", usedPercent: 12,
+            resetsAt: now.addingTimeInterval(3600 * 51))
+        ])),
+      Account(
+        id: "demo-claude", provider: .claude, name: "Personal", plan: "default_claude_max_20x",
+        isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "5h", title: "5 hours", usedPercent: 4, resetsAt: now.addingTimeInterval(3600 * 3)),
+          UsageWindow(
+            id: "weekly", title: "Weekly", usedPercent: 31,
+            resetsAt: now.addingTimeInterval(3600 * 83)),
+        ])),
+      Account(
+        id: "demo-zai", provider: .zai, name: "Coding Plan", plan: "max", isActive: true,
+        usage: UsageSnapshot(windows: [
+          UsageWindow(
+            id: "5h", title: "5 hours", usedPercent: 24, resetsAt: now.addingTimeInterval(3600 * 2))
+        ])),
+    ]
+  }
+}

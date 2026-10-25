@@ -1,0 +1,16 @@
+.build/
+dist/
+.DS_Store
+*.xcuserstate
+.swiftpm/
+.env
+.env.*
+*.auth.json
+auth.json
+.credentials.json
+*.keychain*
+*.p12
+*.p8
+*.pem
+*.cleanshot
+docs/images/raw/
