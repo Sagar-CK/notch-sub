@@ -55,28 +55,30 @@ import SubTrackerCore
     let local = self.local
     let discovered = await Task.detached(priority: .utility) { local.discover() }.value
     let previous = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, $0) })
-    accounts = discovered.map { account in
-      var a = account
-      let best =
-        (account.canCacheUsage
-        ? [account.usage, previous[account.id]?.usage, cache[account.id]] : []).compactMap { $0 }
-        .max { $0.fetchedAt < $1.fetchedAt }
-      a.usage = best
-      a.issue = previous[account.id]?.issue ?? account.issue
-      return a
-    }
     let now = Date()
-    let eligible = accounts.filter { account in
+    func canAttempt(_ account: Account) -> Bool {
       if case .unavailable = account.source { return false }
       if let retry = retryAfter[account.id], retry > now { return false }
       return now.timeIntervalSince(lastAttempts[account.id] ?? .distantPast) >= 60
     }
-    for index in accounts.indices
-    where !accounts[index].canCacheUsage && accounts[index].issue == nil
-      && !eligible.contains(where: { $0.id == accounts[index].id })
-    {
-      accounts[index].issue = "Refresh available in 1m"
+    accounts = discovered.map { account in
+      var a = account
+      // Keep an in-memory reading while the refresh floor applies. Once a new
+      // request is permitted, Google readings must be revalidated before display.
+      let retained =
+        account.canCacheUsage || !canAttempt(account)
+        ? previous[account.id]?.usage : nil
+      let best =
+        [account.usage, retained, account.canCacheUsage ? cache[account.id] : nil].compactMap { $0 }
+        .max { $0.fetchedAt < $1.fetchedAt }
+      a.usage = best
+      a.issue = previous[account.id]?.issue ?? account.issue
+      if account.provider == .antigravity, retained != nil {
+        a.isActive = previous[account.id]?.isActive ?? false
+      }
+      return a
     }
+    let eligible = accounts.filter(canAttempt)
     for account in eligible { lastAttempts[account.id] = now }
     await withTaskGroup(of: (String, UsageSnapshot?, String?).self) { group in
       for account in eligible {

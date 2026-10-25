@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-10-24, Preview)
+
+- Keep the last Google reading in memory when a refresh is skipped by the one-minute floor. Revalidate it when the next request is permitted.
+
 ## 0.2.0 (2026-10-24, Preview)
 
 - Add Gemini Code Assist quotas from local Gemini CLI OAuth sign-ins.

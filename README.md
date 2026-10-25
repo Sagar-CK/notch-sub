@@ -63,7 +63,7 @@ See [account discovery and switching](docs/ACCOUNTS.md).
 
 ## Status
 
-Version **0.2.0** is an early preview. Codex and Claude usage have been checked with live accounts. Z.ai, Gemini, and Antigravity have fixture checks but still need validation with live accounts. Provider endpoints can change.
+Version **0.2.1** is an early preview. Codex and Claude usage have been checked with live accounts. Z.ai, Gemini, and Antigravity have fixture checks but still need validation with live accounts. Provider endpoints can change.
 
 Downloads and local builds are ad-hoc signed. Developer ID signing and Apple notarization are not configured yet.
 
