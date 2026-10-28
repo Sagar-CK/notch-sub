@@ -32,7 +32,7 @@ jobs:
         run: ./scripts/package.sh --skip-build
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: sub-tracker-${{ matrix.runner }}
+          name: notch-sub-${{ matrix.runner }}
           path: |
             dist/*.zip
             dist/*.dmg

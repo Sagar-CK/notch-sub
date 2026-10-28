@@ -1,9 +1,9 @@
 import Foundation
 import SQLite3
-import SubTrackerCore
+import NotchSubCore
 
-extension SubTrackerCoreTests {
-  static var codingChecks: [(String, (SubTrackerCoreTests) throws -> Void)] {
+extension NotchSubCoreTests {
+  static var codingChecks: [(String, (NotchSubCoreTests) throws -> Void)] {
     [
       ("Copilot request quotas and unlimited pools", { try $0.testCopilotQuotas() }),
       ("Copilot credits do not invent a denominator", { try $0.testCopilotCredits() }),

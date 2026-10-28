@@ -94,9 +94,11 @@ Antigravity owns its token refresh and network configuration. Its subprocess use
 
 | Data | Storage |
 | --- | --- |
-| Metadata, usage cache, authentication backups | `~/Library/Application Support/SubTracker` |
-| Saved Claude accounts and connected keys | Keychain service `com.sagar.subtracker.accounts` |
+| Metadata, usage cache, authentication backups | `~/Library/Application Support/NotchSub` |
+| Saved Claude accounts and connected keys | Keychain service `com.sagar.notchsub.accounts` |
 | Existing client sign-ins | Their original provider files |
+
+Notch Sub moves Sub Tracker's support directory and copies its Keychain items on first launch. The old `com.sagar.subtracker.accounts` items stay in place; delete them once Notch Sub shows your accounts.
 
 Authentication backups contain secrets. Keep them private. Direct requests use an HTTPS allowlist and reject redirects. The Antigravity CLI has its own network and MCP configuration. See [Security](../SECURITY.md).
 

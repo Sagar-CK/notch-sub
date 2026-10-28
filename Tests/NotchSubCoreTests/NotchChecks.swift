@@ -1,7 +1,7 @@
-import SubTrackerCore
+import NotchSubCore
 
-extension SubTrackerCoreTests {
-  static var notchChecks: [(String, (SubTrackerCoreTests) throws -> Void)] {
+extension NotchSubCoreTests {
+  static var notchChecks: [(String, (NotchSubCoreTests) throws -> Void)] {
     [
       ("Notch ignores brief passes and closes after leaving", { $0.testNotchHover() }),
       ("Notch reentry cancels dismissal", { $0.testNotchReentry() }),

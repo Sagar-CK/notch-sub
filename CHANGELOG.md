@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 · Preview
+
+Sub Tracker is now Notch Sub:
+
+- New app name, bundle identifier (`com.sagar.notchsub`), icon, and repository ([Sagar-CK/notch-sub](https://github.com/Sagar-CK/notch-sub)).
+- On first launch, Sub Tracker's saved accounts, Keychain items, usage cache, and settings move over.
+- Opens at login by default when run from Applications. Turn it off in Settings.
+- `./scripts/install.sh` replaces `~/Applications/Sub Tracker.app`.
+
 ## 0.4.3 · Preview
 
 Initial open-source baseline:
@@ -12,4 +21,4 @@ Initial open-source baseline:
 - Clone-and-run installation and universal DMG / ZIP downloads.
 - Demo mode, synthetic checks, and Apple Silicon / Intel CI.
 
-Downloads are ad-hoc signed, not Apple-notarized. Earlier preview notes remain on [GitHub Releases](https://github.com/Sagar-CK/sub-tracker/releases).
+Downloads are ad-hoc signed, not Apple-notarized. Earlier preview notes remain on [GitHub Releases](https://github.com/Sagar-CK/notch-sub/releases).

@@ -37,10 +37,10 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/release-check"
           ditto -x -k dist/*-universal.zip "$RUNNER_TEMP/release-check"
-          app="$RUNNER_TEMP/release-check/Sub Tracker.app"
+          app="$RUNNER_TEMP/release-check/Notch Sub.app"
           codesign --verify --deep --strict "$app"
-          lipo "$app/Contents/MacOS/SubTracker" -verify_arch arm64 x86_64
-          "$app/Contents/MacOS/SubTracker" --demo --dark --snapshot "$RUNNER_TEMP/release-check/usage.png"
+          lipo "$app/Contents/MacOS/NotchSub" -verify_arch arm64 x86_64
+          "$app/Contents/MacOS/NotchSub" --demo --dark --snapshot "$RUNNER_TEMP/release-check/usage.png"
           test -s "$RUNNER_TEMP/release-check/usage.png"
       - name: Publish preview release
         env:
@@ -50,5 +50,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             dist/*-universal.dmg dist/*-universal.zip dist/SHA256SUMS.txt \
             --verify-tag --prerelease \
-            --title "Sub Tracker $GITHUB_REF_NAME (Preview)" \
+            --title "Notch Sub $GITHUB_REF_NAME (Preview)" \
             --notes-file "docs/releases/$(cat VERSION).md"

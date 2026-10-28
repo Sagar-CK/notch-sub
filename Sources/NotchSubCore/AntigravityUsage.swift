@@ -34,7 +34,7 @@ public enum AntigravityUsage {
 
   public static func fetch(executable: URL, timeout: TimeInterval = 45) throws -> UsageSnapshot {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
-      "subtracker-agy-\(UUID().uuidString)")
+      "notchsub-agy-\(UUID().uuidString)")
     try PrivateFiles.directory(directory)
     defer { try? FileManager.default.removeItem(at: directory) }
     // A usage refresh must not open a browser login or update the user's CLI.
@@ -48,8 +48,8 @@ public enum AntigravityUsage {
     environment["BROWSER"] = directory.appendingPathComponent("browser").path
     environment["AGY_CLI_DISABLE_AUTO_UPDATE"] = "true"
     // Some configured MCP servers detach from the process group. Track only this probe's descendants.
-    let owner = "SUBTRACKER_AGY_PROBE=" + UUID().uuidString
-    environment["SUBTRACKER_AGY_PROBE"] = String(owner.dropFirst("SUBTRACKER_AGY_PROBE=".count))
+    let owner = "NOTCHSUB_AGY_PROBE=" + UUID().uuidString
+    environment["NOTCHSUB_AGY_PROBE"] = String(owner.dropFirst("NOTCHSUB_AGY_PROBE=".count))
     defer { stopOwnedProcesses(marker: owner) }
     let version = try run(
       executable, arguments: ["--version"], directory: directory,

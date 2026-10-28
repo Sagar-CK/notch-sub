@@ -1,8 +1,8 @@
 import Darwin
 import Foundation
-import SubTrackerCore
+import NotchSubCore
 
-extension SubTrackerCoreTests {
+extension NotchSubCoreTests {
   func testGeminiQuotaRejectsUnknownFractionsAndUsesLowestBucket() throws {
     let usage = UsageParser.gemini(
       [

@@ -5,8 +5,8 @@ Use macOS 14+ and Swift 6. Keep changes focused and avoid new dependencies unles
 ## Run and check
 
 ```sh
-swift run SubTracker --demo --window
-swift run SubTracker --demo --settings
+swift run NotchSub --demo --window
+swift run NotchSub --demo --settings
 ./scripts/check.sh
 ```
 
@@ -32,12 +32,12 @@ Before opening a pull request:
 
 | Path | Contents |
 | --- | --- |
-| `Sources/SubTrackerCore` | Accounts, provider requests, parsing, storage, switching |
-| `Sources/SubTrackerApp` | SwiftUI views, AppKit windows, refresh state |
-| `Tests/SubTrackerCoreTests` | Checks using temporary homes and synthetic credentials |
+| `Sources/NotchSubCore` | Accounts, provider requests, parsing, storage, switching |
+| `Sources/NotchSubApp` | SwiftUI views, AppKit windows, refresh state |
+| `Tests/NotchSubCoreTests` | Checks using temporary homes and synthetic credentials |
 | `scripts` | Build, install, validation, packaging |
 | `docs` | Provider setup, release instructions, demo images |
 
-Use [private vulnerability reporting](https://github.com/Sagar-CK/sub-tracker/security/advisories/new) for security issues. Never attach real sign-ins or account screenshots to public reports.
+Use [private vulnerability reporting](https://github.com/Sagar-CK/notch-sub/security/advisories/new) for security issues. Never attach real sign-ins or account screenshots to public reports.
 
 Contributions use the [MIT license](LICENSE). Provider marks retain their own ownership notices.

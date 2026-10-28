@@ -24,7 +24,7 @@ extension UsageClient {
       else { throw TrackerError.message("Unsupported provider endpoint") }
       var request = URLRequest(url: url, timeoutInterval: 20)
       request.setValue("application/json", forHTTPHeaderField: "Accept")
-      request.setValue("SubTracker", forHTTPHeaderField: "User-Agent")
+      request.setValue("NotchSub", forHTTPHeaderField: "User-Agent")
       if let cookie {
         request.setValue(cookie, forHTTPHeaderField: "Cookie")
         request.setValue("https://cursor.com", forHTTPHeaderField: "Origin")

@@ -14,8 +14,8 @@ All public images use synthetic demo accounts.
 ```sh
 ./scripts/build.sh
 mkdir -p docs/images/raw
-"dist/Sub Tracker.app/Contents/MacOS/SubTracker" --demo --dark --snapshot "$PWD/docs/images/raw/usage.png"
-"dist/Sub Tracker.app/Contents/MacOS/SubTracker" --demo --dark --settings --snapshot "$PWD/docs/images/settings.png"
+"dist/Notch Sub.app/Contents/MacOS/NotchSub" --demo --dark --snapshot "$PWD/docs/images/raw/usage.png"
+"dist/Notch Sub.app/Contents/MacOS/NotchSub" --demo --dark --settings --snapshot "$PWD/docs/images/settings.png"
 ```
 
 Add `--light` instead of `--dark`, or `--coding` for the other provider set.

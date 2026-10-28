@@ -2,15 +2,15 @@
 import PackageDescription
 
 let package = Package(
-  name: "SubTracker",
+  name: "NotchSub",
   platforms: [.macOS(.v14)],
-  products: [.executable(name: "SubTracker", targets: ["SubTrackerApp"])],
+  products: [.executable(name: "NotchSub", targets: ["NotchSubApp"])],
   targets: [
-    .target(name: "SubTrackerCore"),
+    .target(name: "NotchSubCore"),
     .executableTarget(
-      name: "SubTrackerApp", dependencies: ["SubTrackerCore"], resources: [.process("Resources")]),
+      name: "NotchSubApp", dependencies: ["NotchSubCore"], resources: [.process("Resources")]),
     .executableTarget(
-      name: "SubTrackerChecks", dependencies: ["SubTrackerCore"], path: "Tests/SubTrackerCoreTests"),
+      name: "NotchSubChecks", dependencies: ["NotchSubCore"], path: "Tests/NotchSubCoreTests"),
   ],
   swiftLanguageModes: [.v5]
 )

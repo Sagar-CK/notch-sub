@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import SubTrackerCore
+import NotchSubCore
 
 @MainActor final class TrackerStore: ObservableObject {
   @Published var accounts: [Account] = []

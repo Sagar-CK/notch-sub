@@ -1,5 +1,5 @@
 import AppKit
-import SubTrackerCore
+import NotchSubCore
 import SwiftUI
 
 enum Placement: String, CaseIterable, Identifiable {
@@ -78,7 +78,7 @@ private final class NotchHostingView: NSHostingView<NotchView> {
     panel = NotchWindow(
       contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered,
       defer: false)
-    panel.title = "Sub Tracker"
+    panel.title = "Notch Sub"
     panel.isFloatingPanel = true
     panel.level = .statusBar
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]

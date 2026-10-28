@@ -1,5 +1,6 @@
 import AppKit
-import SubTrackerCore
+import NotchSubCore
+import ServiceManagement
 import SwiftUI
 
 @main enum Main {
@@ -26,6 +27,7 @@ import SwiftUI
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     let args = CommandLine.arguments
+    if !args.contains("--demo") { migrateFromSubTracker() }
     if let index = args.firstIndex(of: "--placement"), args.indices.contains(index + 1),
       let placement = Placement(rawValue: args[index + 1])
     {
@@ -100,6 +102,7 @@ import SwiftUI
       }
       return
     }
+    if !args.contains("--demo") { openAtLoginByDefault() }
     popover.behavior = .transient
     popover.animates = true
     let controller = NSHostingController(
@@ -125,7 +128,7 @@ import SwiftUI
         contentViewController: NSHostingController(
           rootView: TrackerView(store: store, showSettings: { [weak self] in self?.showSettings() })
         ))
-      window.title = "Sub Tracker"
+      window.title = "Notch Sub"
       window.styleMask = [.titled, .closable]
       window.center()
       window.makeKeyAndOrderFront(nil)
@@ -136,6 +139,24 @@ import SwiftUI
     } else if args.contains("--show"), !Placement.current.hasNotch || !hasHardwareNotch {
       togglePopover()
     }
+  }
+  private func migrateFromSubTracker() {
+    guard LegacyStorage.migrate(LocalPaths()) else { return }
+    let defaults = UserDefaults.standard
+    for (key, value) in defaults.persistentDomain(forName: LegacyStorage.defaultsDomain) ?? [:]
+    where defaults.object(forKey: key) == nil {
+      defaults.set(value, forKey: key)
+    }
+  }
+  // Once, and only from an Applications folder, so a later choice in Settings sticks and
+  // DMG, translocated, or dist/ copies never register themselves.
+  private func openAtLoginByDefault() {
+    let defaults = UserDefaults.standard
+    guard Bundle.main.bundleURL.deletingLastPathComponent().lastPathComponent == "Applications",
+      !defaults.bool(forKey: "openAtLoginDefaulted")
+    else { return }
+    defaults.set(true, forKey: "openAtLoginDefaulted")
+    try? SMAppService.mainApp.register()
   }
   func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool
   {
@@ -177,13 +198,13 @@ import SwiftUI
   private func updateStatus() {
     guard let button = item?.button else { return }
     let symbol = NSImage(
-      systemSymbolName: "chart.bar.xaxis", accessibilityDescription: "Sub Tracker")
+      systemSymbolName: "chart.bar.xaxis", accessibilityDescription: "Notch Sub")
     symbol?.isTemplate = true
     button.image = symbol
     button.imagePosition = .imageLeading
     button.title = store.menuTitle.isEmpty ? "" : " \(store.menuTitle)"
     button.font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .medium)
-    button.toolTip = "Sub Tracker · lowest remaining allowance across active accounts"
+    button.toolTip = "Notch Sub · lowest remaining allowance across active accounts"
   }
   private func showSettings() {
     popover.performClose(nil)
