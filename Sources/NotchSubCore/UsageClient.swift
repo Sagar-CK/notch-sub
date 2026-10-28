@@ -177,7 +177,7 @@ public struct UsageClient: Sendable {
     var request = URLRequest(url: url, timeoutInterval: 20)
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
-    request.setValue("SubTracker/1.0", forHTTPHeaderField: "User-Agent")
+    request.setValue("NotchSub/1.0", forHTTPHeaderField: "User-Agent")
     if provider == .codex, let accountID {
       request.setValue(accountID, forHTTPHeaderField: "ChatGPT-Account-Id")
     }

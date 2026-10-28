@@ -8,7 +8,7 @@ body:
     id: version
     attributes:
       label: App and macOS versions
-      placeholder: "Sub Tracker version, macOS version, Apple Silicon or Intel"
+      placeholder: "Notch Sub version, macOS version, Apple Silicon or Intel"
     validations:
       required: true
   - type: dropdown

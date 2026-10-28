@@ -1,6 +1,6 @@
 import AppKit
 import ServiceManagement
-import SubTrackerCore
+import NotchSubCore
 import SwiftUI
 
 enum Style {
@@ -93,7 +93,7 @@ struct TrackerView: View {
         Menu {
           Button("Settings…", action: showSettings)
           Divider()
-          Button("Quit Sub Tracker") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+          Button("Quit Notch Sub") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
         } label: {
           Image(systemName: "ellipsis").frame(width: 24, height: 20)
         }
@@ -120,7 +120,7 @@ struct TrackerView: View {
       )
     }
     .alert(
-      "Sub Tracker",
+      "Notch Sub",
       isPresented: Binding(get: { store.notice != nil }, set: { if !$0 { store.notice = nil } })
     ) {
       Button("OK") { store.notice = nil }
@@ -523,7 +523,7 @@ struct SettingsView: View {
     }.font(.system(size: 12)).controlSize(.small).padding(24).frame(width: 410)
       .background(Color(nsColor: .windowBackgroundColor))
       .alert(
-        "Sub Tracker",
+        "Notch Sub",
         isPresented: Binding(get: { store.notice != nil }, set: { if !$0 { store.notice = nil } })
       ) {
         Button("OK") { store.notice = nil }
@@ -578,7 +578,7 @@ func openLogin(_ provider: Provider) {
   let text =
     "#!/bin/zsh\nexport PATH=\"$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH\"\n\(command)\n"
   let url = FileManager.default.temporaryDirectory.appendingPathComponent(
-    "subtracker-\(provider.rawValue)-login.command")
+    "notchsub-\(provider.rawValue)-login.command")
   do {
     try Data(text.utf8).write(to: url, options: .atomic)
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)

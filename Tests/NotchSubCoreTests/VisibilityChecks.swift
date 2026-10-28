@@ -1,8 +1,8 @@
 import Foundation
-import SubTrackerCore
+import NotchSubCore
 
-extension SubTrackerCoreTests {
-  static var visibilityChecks: [(String, (SubTrackerCoreTests) throws -> Void)] {
+extension NotchSubCoreTests {
+  static var visibilityChecks: [(String, (NotchSubCoreTests) throws -> Void)] {
     [
       ("Discovery and caches do not validate accounts", { $0.testUnverifiedAccountsStayHidden() }),
       (

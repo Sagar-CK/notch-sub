@@ -24,7 +24,7 @@ public struct LocalPaths: Sendable {
     claude =
       environment["CLAUDE_CONFIG_DIR"].map { URL(fileURLWithPath: $0) }
       ?? home.appendingPathComponent(".claude")
-    support = home.appendingPathComponent("Library/Application Support/SubTracker")
+    support = home.appendingPathComponent("Library/Application Support/NotchSub")
   }
   public var claudeMetadata: URL {
     claude == home.appendingPathComponent(".claude")
@@ -44,7 +44,7 @@ public enum PrivateFiles {
     }
     try directory(url.deletingLastPathComponent())
     let tmp = url.deletingLastPathComponent().appendingPathComponent(
-      ".subtracker-\(UUID().uuidString)")
+      ".notchsub-\(UUID().uuidString)")
     defer { try? fm.removeItem(at: tmp) }
     guard fm.createFile(atPath: tmp.path, contents: data, attributes: [.posixPermissions: 0o600])
     else { throw TrackerError.message("Could not save private data") }
@@ -58,7 +58,7 @@ public enum PrivateFiles {
 }
 
 public enum KeychainStore {
-  public static let service = "com.sagar.subtracker.accounts"
+  public static let service = "com.sagar.notchsub.accounts"
   public static func read(service: String = service, account: String? = nil) throws -> Data {
     var query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
@@ -86,6 +86,18 @@ public enum KeychainStore {
       status = SecItemAdd(query as CFDictionary, nil)
     }
     guard status == errSecSuccess else { throw TrackerError.message("Could not save to Keychain") }
+  }
+  // Attributes only, so listing never prompts for access.
+  public static func accounts(service: String) -> [String] {
+    let query: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
+      kSecReturnAttributes as String: true, kSecMatchLimit as String: kSecMatchLimitAll,
+    ]
+    var result: CFTypeRef?
+    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+      let items = result as? [[String: Any]]
+    else { return [] }
+    return items.compactMap { $0[kSecAttrAccount as String] as? String }
   }
   // Claude's own item may grant access to Apple's security utility but not a new unsigned app.
   // Arguments identify the item only. Credential bytes remain inside the pipe, never in argv or logs.

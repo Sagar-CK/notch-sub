@@ -4,8 +4,8 @@ Provider marks (Codex, Claude, Z.ai, Gemini, Antigravity, GitHub Copilot, Cursor
 [`@lobehub/icons-static-svg` 1.98.0](https://www.npmjs.com/package/@lobehub/icons-static-svg),
 part of [Lobe Icons](https://github.com/lobehub/lobe-icons).
 
-Their MIT notice is included at [Sources/SubTrackerApp/Resources/Icons-LICENSE.txt](Sources/SubTrackerApp/Resources/Icons-LICENSE.txt).
-All provider names and product marks belong to their respective owners. The Kimi dark variant changes its foreground to white for contrast. Sub Tracker is independent and is not endorsed by those providers.
+Their MIT notice is included at [Sources/NotchSubApp/Resources/Icons-LICENSE.txt](Sources/NotchSubApp/Resources/Icons-LICENSE.txt).
+All provider names and product marks belong to their respective owners. The Kimi dark variant changes its foreground to white for contrast. Notch Sub is independent and is not endorsed by those providers.
 
 ## Design references
 

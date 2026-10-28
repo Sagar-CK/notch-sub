@@ -9,7 +9,7 @@ case "${1:-}" in
   *) print -u2 "Unknown option: $1"; exit 1 ;;
 esac
 if [[ "$(uname -s)" != Darwin ]]; then
-  print -u2 'Sub Tracker requires macOS 14 or later.'
+  print -u2 'Notch Sub requires macOS 14 or later.'
   exit 1
 fi
 if ! xcode-select -p >/dev/null 2>&1; then
@@ -29,23 +29,23 @@ fi
 binaries=()
 if $universal; then
   for architecture in arm64 x86_64; do
-    swift build -c release --product SubTracker --triple "${architecture}-apple-macosx14.0"
+    swift build -c release --product NotchSub --triple "${architecture}-apple-macosx14.0"
     binary_dir=$(swift build -c release --show-bin-path --triple "${architecture}-apple-macosx14.0")
-    binaries+=("$binary_dir/SubTracker")
+    binaries+=("$binary_dir/NotchSub")
   done
 else
-  swift build -c release --product SubTracker
+  swift build -c release --product NotchSub
   binary_dir=$(swift build -c release --show-bin-path)
-  binaries+=("$binary_dir/SubTracker")
+  binaries+=("$binary_dir/NotchSub")
 fi
-app="$PWD/dist/Sub Tracker.app"
+app="$PWD/dist/Notch Sub.app"
 if [[ -d "$app" ]]; then rm -rf "$app"; fi
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 if $universal; then
-  xcrun lipo -create "${binaries[@]}" -output "$app/Contents/MacOS/SubTracker"
-  xcrun lipo "$app/Contents/MacOS/SubTracker" -verify_arch arm64 x86_64
+  xcrun lipo -create "${binaries[@]}" -output "$app/Contents/MacOS/NotchSub"
+  xcrun lipo "$app/Contents/MacOS/NotchSub" -verify_arch arm64 x86_64
 else
-  cp "${binaries[1]}" "$app/Contents/MacOS/SubTracker"
+  cp "${binaries[1]}" "$app/Contents/MacOS/NotchSub"
 fi
 for bundle in "$binary_dir"/*.bundle; do
   cp "$bundle"/* "$app/Contents/Resources/"
@@ -54,10 +54,10 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleName</key><string>Sub Tracker</string>
-<key>CFBundleDisplayName</key><string>Sub Tracker</string>
-<key>CFBundleIdentifier</key><string>com.sagar.subtracker</string>
-<key>CFBundleExecutable</key><string>SubTracker</string>
+<key>CFBundleName</key><string>Notch Sub</string>
+<key>CFBundleDisplayName</key><string>Notch Sub</string>
+<key>CFBundleIdentifier</key><string>com.sagar.notchsub</string>
+<key>CFBundleExecutable</key><string>NotchSub</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.0.0</string>

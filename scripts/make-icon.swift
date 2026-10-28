@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-// Native rendering of the project's orange ST mark from assets/icon.svg.
+// Native rendering of the project's orange NS mark from assets/icon.svg.
 // Run: swift scripts/make-icon.swift .build/AppIcon.iconset
 let output = URL(
   fileURLWithPath: CommandLine.arguments.dropFirst().first ?? ".build/AppIcon.iconset")
@@ -21,7 +21,7 @@ for size in [16, 32, 128, 256, 512] {
     NSColor(calibratedRed: 234 / 255, green: 88 / 255, blue: 12 / 255, alpha: 1).setFill()
     NSBezierPath(roundedRect: NSRect(x: 4, y: 4, width: 56, height: 56), xRadius: 13, yRadius: 13)
       .fill()
-    let text = "ST" as NSString
+    let text = "NS" as NSString
     let attributes: [NSAttributedString.Key: Any] = [
       .font: NSFont.systemFont(ofSize: 26, weight: .semibold),
       .foregroundColor: NSColor.white,

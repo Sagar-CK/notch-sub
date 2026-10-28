@@ -1,6 +1,6 @@
 # Security
 
-Report credential disclosure, account mix-ups, unexpected writes, or unsafe network requests through [private vulnerability reporting](https://github.com/Sagar-CK/sub-tracker/security/advisories/new).
+Report credential disclosure, account mix-ups, unexpected writes, or unsafe network requests through [private vulnerability reporting](https://github.com/Sagar-CK/notch-sub/security/advisories/new).
 
 Include the app version, macOS version, provider, impact, and steps using synthetic data. Do not send credentials, browser profiles, or Keychain exports. If private reporting is unavailable, open a public issue requesting a private channel without describing the vulnerability.
 

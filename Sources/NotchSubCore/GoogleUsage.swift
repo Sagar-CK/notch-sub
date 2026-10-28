@@ -96,7 +96,7 @@ extension UsageClient {
       var request = URLRequest(url: URL(string: url)!, timeoutInterval: 20)
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
       request.setValue("application/json", forHTTPHeaderField: "Accept")
-      request.setValue("SubTracker", forHTTPHeaderField: "User-Agent")
+      request.setValue("NotchSub", forHTTPHeaderField: "User-Agent")
       if let body {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

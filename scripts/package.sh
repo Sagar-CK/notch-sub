@@ -14,10 +14,10 @@ done
 if ! $skip_build; then
   if $universal; then ./scripts/build.sh --universal; else ./scripts/build.sh; fi
 fi
-app="$PWD/dist/Sub Tracker.app"
+app="$PWD/dist/Notch Sub.app"
 codesign --verify --deep --strict "$app"
 version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")
-architectures=$(xcrun lipo -archs "$app/Contents/MacOS/SubTracker")
+architectures=$(xcrun lipo -archs "$app/Contents/MacOS/NotchSub")
 if [[ "$architectures" == *arm64* && "$architectures" == *x86_64* ]]; then
   architecture=universal
 elif $universal; then
@@ -26,17 +26,17 @@ elif $universal; then
 else
   architecture="$architectures"
 fi
-name="Sub-Tracker-${version}-macOS-${architecture}"
-staging=$(mktemp -d "${TMPDIR:-/tmp}/subtracker-package.XXXXXX")
+name="Notch-Sub-${version}-macOS-${architecture}"
+staging=$(mktemp -d "${TMPDIR:-/tmp}/notchsub-package.XXXXXX")
 trap 'rm -rf "$staging"' EXIT
-ditto "$app" "$staging/Sub Tracker.app"
+ditto "$app" "$staging/Notch Sub.app"
 ln -s /Applications "$staging/Applications"
 cat > "$staging/Read Me.txt" <<'README'
-Sub Tracker
+Notch Sub
 
-Drag Sub Tracker.app into Applications, then open it from Applications.
+Drag Notch Sub.app into Applications, then open it from Applications.
 Requires macOS 14 or later. Sign in to your AI provider's CLI first;
-Sub Tracker detects local accounts. Add subscription keys in Settings.
+Notch Sub detects local accounts. Add subscription keys in Settings.
 
 This preview is ad-hoc signed and is not Apple-notarized. macOS may
 block the first launch. Build from the public source if you prefer,
@@ -44,14 +44,17 @@ or review Apple's guidance before allowing a downloaded app:
 https://support.apple.com/en-us/102445
 
 Source, instructions, and license:
-https://github.com/Sagar-CK/sub-tracker
+https://github.com/Sagar-CK/notch-sub
 
 To update, quit the old app before replacing it. Account data stays
-on your Mac and is not included in this installer.
+on your Mac and is not included in this installer. Coming from
+Sub Tracker? Quit and delete it. Accounts move over on first launch.
+
+Notch Sub opens at login by default. Change this in Settings.
 README
 cd dist
-ditto -c -k --sequesterRsrc --keepParent "Sub Tracker.app" "${name}.zip"
-hdiutil create -quiet -volname 'Sub Tracker' -srcfolder "$staging" -format UDZO -fs HFS+ -ov "${name}.dmg"
+ditto -c -k --sequesterRsrc --keepParent "Notch Sub.app" "${name}.zip"
+hdiutil create -quiet -volname 'Notch Sub' -srcfolder "$staging" -format UDZO -fs HFS+ -ov "${name}.dmg"
 hdiutil verify -quiet "${name}.dmg"
 shasum -a 256 "${name}.zip" "${name}.dmg" > SHA256SUMS.txt
 print "Packaged $PWD/${name}.dmg"

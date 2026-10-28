@@ -1,12 +1,12 @@
 import Foundation
-import SubTrackerCore
+import NotchSubCore
 
-final class SubTrackerCoreTests {
+final class NotchSubCoreTests {
   var root: URL!
   var local: LocalAccounts!
   func setUpWithError() throws {
     root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      "sub-tracker-test-\(UUID().uuidString)")
+      "notch-sub-test-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     local = LocalAccounts(paths: LocalPaths(home: root, environment: [:]))
   }
@@ -215,6 +215,16 @@ final class SubTrackerCoreTests {
     expectThrows(try PrivateFiles.write(Data("unsafe".utf8), to: link))
     expectEqual(try Data(contentsOf: target), Data("safe".utf8))
   }
+  func testSubTrackerDataMovesOnceWithoutOverwriting() throws {
+    try write(Data("old".utf8), "Library/Application Support/SubTracker/profiles.json")
+    expect(LegacyStorage.migrate(local.paths, keychain: false))
+    let moved = local.paths.support.appendingPathComponent("profiles.json")
+    expectEqual(try Data(contentsOf: moved), Data("old".utf8))
+    expect(!LegacyStorage.migrate(local.paths, keychain: false))
+    try write(Data("stale".utf8), "Library/Application Support/SubTracker/profiles.json")
+    expect(!LegacyStorage.migrate(local.paths, keychain: false))
+    expectEqual(try Data(contentsOf: moved), Data("old".utf8))
+  }
   func testZaiHostAllowlistRejectsLookalikeAndPlainHTTP() {
     expectEqual(LocalAccounts.zaiHost("https://api.z.ai/api/anthropic"), "api.z.ai")
     expectNil(LocalAccounts.zaiHost("https://api.z.ai.evil.test/api/anthropic"))
@@ -271,7 +281,7 @@ func unwrap<T>(_ value: T?) throws -> T {
       try runAgyFixture()
       return
     }
-    let checks: [(String, (SubTrackerCoreTests) throws -> Void)] = [
+    let checks: [(String, (NotchSubCoreTests) throws -> Void)] = [
       (
         "testGeminiQuotaRejectsUnknownFractionsAndUsesLowestBucket",
         { try $0.testGeminiQuotaRejectsUnknownFractionsAndUsesLowestBucket() }
@@ -348,6 +358,10 @@ func unwrap<T>(_ value: T?) throws -> T {
       ),
       ("testSymlinkRefusedAndTargetUntouched", { try $0.testSymlinkRefusedAndTargetUntouched() }),
       (
+        "testSubTrackerDataMovesOnceWithoutOverwriting",
+        { try $0.testSubTrackerDataMovesOnceWithoutOverwriting() }
+      ),
+      (
         "testZaiHostAllowlistRejectsLookalikeAndPlainHTTP",
         { $0.testZaiHostAllowlistRejectsLookalikeAndPlainHTTP() }
       ),
@@ -361,10 +375,10 @@ func unwrap<T>(_ value: T?) throws -> T {
       ),
     ]
     let allChecks =
-      checks + SubTrackerCoreTests.codingChecks + SubTrackerCoreTests.visibilityChecks
-      + SubTrackerCoreTests.notchChecks
+      checks + NotchSubCoreTests.codingChecks + NotchSubCoreTests.visibilityChecks
+      + NotchSubCoreTests.notchChecks
     for (name, run) in allChecks {
-      let suite = SubTrackerCoreTests()
+      let suite = NotchSubCoreTests()
       try suite.setUpWithError()
       do {
         try run(suite)

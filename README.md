@@ -1,8 +1,8 @@
-# Sub Tracker
+# Notch Sub
 
 AI subscription usage at your Mac's notch or in the menu bar.
 
-[Download](https://github.com/Sagar-CK/sub-tracker/releases) · [Build from source](#build-from-source) · [Provider setup](docs/ACCOUNTS.md)
+[Download](https://github.com/Sagar-CK/notch-sub/releases) · [Build from source](#build-from-source) · [Provider setup](docs/ACCOUNTS.md)
 
 <p align="center">
   <img src="docs/images/usage-dark.png" alt="Dark usage panel with demo accounts" width="46%">
@@ -19,13 +19,15 @@ AI subscription usage at your Mac's notch or in the menu bar.
 
 Requires **macOS 14+**. Universal downloads support Apple Silicon and Intel.
 
-1. Download the DMG from [Releases](https://github.com/Sagar-CK/sub-tracker/releases).
-2. Drag **Sub Tracker** into **Applications** and open it.
+1. Download the DMG from [Releases](https://github.com/Sagar-CK/notch-sub/releases).
+2. Drag **Notch Sub** into **Applications** and open it.
 3. Sign in through your provider's client, or use **Settings → Add account**.
 
 Downloads are **ad-hoc signed, not Apple-notarized**. If macOS blocks a preview, build from source or follow [Apple's guidance for trusted apps](https://support.apple.com/en-us/102445). SHA-256 checksums accompany each release.
 
 To update, quit the app and replace it. Your account data stays on your Mac.
+
+Coming from **Sub Tracker**? Quit it, install Notch Sub, then delete `Sub Tracker.app`. Saved accounts and settings move over on first launch.
 
 ## Use
 
@@ -36,6 +38,7 @@ To update, quit the app and replace it. Your account data stays on your Mac.
 | Close the panel | Move away, or click outside / press Escape if pinned |
 | Choose placement | Settings → Placement: Notch, Menu bar, or Both |
 | Choose the compact reading | Settings → Notch display: Cycle or a provider |
+| Stop opening at login | Settings → Open at login (on by default) |
 
 Cycle changes providers every four seconds. The percentage is the active account's lowest remaining allowance. Stale and unknown readings stay hidden. Macs without a notch use the menu bar. Reduce Motion is supported.
 
@@ -56,15 +59,15 @@ This is an early preview. Provider endpoints can change. Some plans do not expos
 Requires **Swift 6** from Xcode or Command Line Tools. Run `xcode-select --install` if needed.
 
 ```sh
-git clone https://github.com/Sagar-CK/sub-tracker.git
-cd sub-tracker
+git clone https://github.com/Sagar-CK/notch-sub.git
+cd notch-sub
 ./scripts/install.sh
 ```
 
-Installs `~/Applications/Sub Tracker.app` without administrator access.
+Installs `~/Applications/Notch Sub.app` without administrator access.
 
 ```sh
-swift run SubTracker --demo --window   # Sample data, no provider requests
+swift run NotchSub --demo --window     # Sample data, no provider requests
 ./scripts/check.sh                     # Checks, build, and signature verification
 ./scripts/package.sh --universal       # App, DMG, ZIP, and checksums in dist/
 ```
@@ -77,4 +80,4 @@ Credentials remain local in provider files or macOS Keychain. Usage requests go 
 
 [Security and data handling](SECURITY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-Notch interaction is inspired by [Boring Notch](https://github.com/TheBoredTeam/boring.notch). Sub Tracker is independent of the supported providers.
+Notch interaction is inspired by [Boring Notch](https://github.com/TheBoredTeam/boring.notch). Notch Sub is independent of the supported providers.
